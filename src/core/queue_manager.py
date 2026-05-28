@@ -269,14 +269,28 @@ class QueueManager:
             job.result_text = text
             output_dir = self.settings.resolve_output_dir(job.file_path)
             fmt = self.settings.default_export_format  # type: ignore[arg-type]
-            job.output_path = self._export.save_auto(job.file_path, text, output_dir, fmt)
+            job.output_path, stage = self._export.save_auto(
+                job.file_path,
+                text,
+                output_dir,
+                fmt,
+                export_mode=self.settings.export_mode,
+                content_template=self.settings.content_template,
+                language=self.settings.language,
+                model=self.settings.whisper_model,
+            )
             job.status = JobStatus.COMPLETED
             self._session_completed += 1
+            pipeline_stage = stage.pipeline_stage if stage else self.settings.export_mode
             self.settings.add_history_entry(
                 job.file_name,
                 job.file_type,
                 status="concluído",
                 output_path=job.output_path,
+                export_mode=self.settings.export_mode,
+                template_usado=self.settings.content_template,
+                pipeline_stage=pipeline_stage,
+                tipo_documento=self.settings.content_template,
             )
             self._logger.info("Concluído: %s -> %s", job.file_name, job.output_path)
         except Exception as exc:

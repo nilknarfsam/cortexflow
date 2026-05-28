@@ -12,6 +12,9 @@ from src.core.queue_manager import QueueManager, QueueStats
 from src.core.settings_service import SettingsService
 from src.core.transcription_service import TranscriptionService
 from src.models.transcription_job import JobStatus, TranscriptionJob
+from src.ui.design.fonts import APP_NAME, APP_TAGLINE, APP_VERSION, badge, brand_subtitle, brand_title
+from src.ui.design.spacing import Layout
+from src.ui.design.theme_manager import ThemeManager
 from src.ui.queue_panel import QueuePanel
 from src.ui.result_panel import ResultPanel
 from src.ui.settings_panel import SettingsPanel
@@ -26,16 +29,15 @@ class MainWindow:
             mb.showerror("Erro", str(exc))
             raise SystemExit(1) from exc
 
-        ctk.set_appearance_mode("System")
-        ctk.set_default_color_theme("blue")
-
         self.settings = SettingsService()
-        ctk.set_appearance_mode(self.settings.theme)
+        self.theme = ThemeManager(self.settings.theme)
+        self.theme.apply(self.settings.theme)
 
         self.root = TkinterDnD.Tk()
-        self.root.title("Transcritor Universal 2.1")
-        self.root.geometry("1100x720")
-        self.root.minsize(900, 600)
+        self.root.title(f"{APP_NAME} {APP_VERSION}")
+        self.root.geometry("1140x740")
+        self.root.minsize(920, 620)
+        self.root.configure(fg_color=self.theme.colors()["surface"])
 
         self.queue_manager = QueueManager(
             self.settings,
@@ -51,50 +53,95 @@ class MainWindow:
 
     def _build_layout(self) -> None:
         self.root.grid_columnconfigure(1, weight=1)
-        self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=0)
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_rowconfigure(2, weight=0)
 
         self.settings_panel = SettingsPanel(
             self.root,
             self.settings,
+            self.theme,
             on_theme_change=self._on_theme_change,
             on_settings_change=self._on_settings_change,
-            width=260,
+            width=Layout.SIDEBAR_WIDTH,
         )
-        self.settings_panel.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(12, 6), pady=12)
+        self.settings_panel.grid(
+            row=0, column=0, rowspan=3, sticky="nsew", padx=(Layout.LG, Layout.SM), pady=Layout.LG
+        )
+
+        self._build_header()
 
         center = ctk.CTkFrame(self.root, fg_color="transparent")
-        center.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=(12, 6))
+        center.grid(row=1, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=(0, Layout.SM))
         center.grid_columnconfigure(0, weight=1)
-        center.grid_rowconfigure(1, weight=1)
-
-        title = ctk.CTkLabel(
-            center,
-            text="TRANSCRITOR UNIVERSAL",
-            font=ctk.CTkFont(family="Arial", size=22, weight="bold"),
-        )
-        title.grid(row=0, column=0, sticky="w", pady=(0, 8))
+        center.grid_rowconfigure(0, weight=1)
+        center.grid_rowconfigure(1, weight=0)
 
         self.queue_panel = QueuePanel(
             center,
             self.queue_manager,
+            self.theme,
             on_selection_change=self._on_job_selected,
         )
-        self.queue_panel.grid(row=1, column=0, sticky="nsew")
+        self.queue_panel.grid(row=0, column=0, sticky="nsew")
         self.queue_panel.set_add_files_handler(self.add_files_dialog)
         self.queue_panel.set_status_handler(self._set_status)
-
-        self.result_panel = ResultPanel(self.root, on_status=self._set_status)
-        self.result_panel.grid(row=1, column=1, sticky="nsew", padx=(6, 12), pady=(0, 12))
 
         self.status_label = ctk.CTkLabel(
             center,
             text="Pronto.",
-            font=ctk.CTkFont(size=11),
-            text_color="#1a73e8",
+            font=brand_subtitle(),
+            text_color=self.theme.colors()["accent"],
             anchor="w",
         )
-        self.status_label.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        self.status_label.grid(row=1, column=0, sticky="ew", pady=(Layout.SM, 0))
+
+        self.result_panel = ResultPanel(self.root, self.theme, self.settings, on_status=self._set_status)
+        self.result_panel.grid(
+            row=2, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=(0, Layout.LG)
+        )
+
+    def _build_header(self) -> None:
+        colors = self.theme.colors()
+        header = ctk.CTkFrame(
+            self.root,
+            fg_color=colors["header_bg"],
+            border_color=colors["border"],
+            border_width=1,
+            corner_radius=Layout.CORNER_RADIUS,
+            height=Layout.HEADER_HEIGHT,
+        )
+        header.grid(row=0, column=1, sticky="ew", padx=(Layout.SM, Layout.LG), pady=(Layout.LG, Layout.SM))
+        header.grid_propagate(False)
+        header.grid_columnconfigure(0, weight=1)
+
+        title_row = ctk.CTkFrame(header, fg_color="transparent")
+        title_row.pack(fill="x", padx=Layout.LG, pady=(Layout.MD, 0))
+
+        ctk.CTkLabel(
+            title_row,
+            text=APP_NAME.upper(),
+            font=brand_title(),
+            text_color=colors["text_primary"],
+        ).pack(side="left")
+
+        ctk.CTkLabel(
+            title_row,
+            text=f"v{APP_VERSION}",
+            font=badge(),
+            text_color=colors["text_muted"],
+            fg_color=colors["surface"],
+            corner_radius=6,
+            padx=8,
+            pady=2,
+        ).pack(side="left", padx=(Layout.SM, 0))
+
+        ctk.CTkLabel(
+            header,
+            text=APP_TAGLINE,
+            font=brand_subtitle(),
+            text_color=colors["text_secondary"],
+            anchor="w",
+        ).pack(fill="x", padx=Layout.LG, pady=(Layout.XS, Layout.MD))
 
     def _setup_dnd(self) -> None:
         self.root.drop_target_register(DND_FILES)
@@ -121,7 +168,7 @@ class MainWindow:
 
     def add_files_dialog(self) -> None:
         paths = list(
-            fd.askopenfilenames(title="Escolha arquivos para transcrever", filetypes=FILE_DIALOG_TYPES)
+            fd.askopenfilenames(title="Escolha arquivos para processar", filetypes=FILE_DIALOG_TYPES)
         )
         if paths:
             self._add_paths(list(paths))
@@ -148,7 +195,13 @@ class MainWindow:
         self.queue_panel.refresh()
 
     def _on_theme_change(self, theme: str) -> None:
-        ctk.set_appearance_mode(theme)
+        self.theme.apply(theme)
+        colors = self.theme.colors()
+        self.root.configure(fg_color=colors["surface"])
+        self.status_label.configure(text_color=colors["accent"])
+        self.settings_panel.refresh_theme()
+        self.queue_panel.refresh_theme()
+        self.result_panel.refresh_theme()
         self._set_status(f"Tema alterado para {theme}")
 
     def _on_job_updated_threadsafe(self, job: TranscriptionJob) -> None:

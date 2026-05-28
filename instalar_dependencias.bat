@@ -1,9 +1,9 @@
 @echo off
-title Instalar Dependencias - Transcritor Universal
+title Instalar Dependencias - CortexFlow
 color 0A
 
 echo ================================================
-echo   Instalador de Dependencias - Transcritor App
+echo   Instalador de Dependencias - CortexFlow
 echo ================================================
 echo.
 
@@ -86,6 +86,6 @@ echo ================================================
 echo.
 echo ================================================
 echo   Instalacao concluida!
-echo   Agora rode: python app_transcricao.py
+echo   Agora rode: python app.py
 echo ================================================
 pause

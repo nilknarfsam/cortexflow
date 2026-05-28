@@ -1,4 +1,4 @@
-"""Ponto de entrada do Transcritor Universal 2.0."""
+"""Ponto de entrada do CortexFlow."""
 
 from src.ui.main_window import run_app
 

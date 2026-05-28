@@ -14,7 +14,7 @@ _CONFIGURED = False
 
 def setup_logging() -> logging.Logger:
     global _CONFIGURED
-    logger = logging.getLogger("transcritor")
+    logger = logging.getLogger("cortexflow")
     if _CONFIGURED:
         return logger
 

@@ -9,6 +9,9 @@ import customtkinter as ctk
 
 from src.core.queue_manager import QueueManager, QueueStats
 from src.models.transcription_job import JobStatus, TranscriptionJob
+from src.ui.design.fonts import body_small, caption, panel_title
+from src.ui.design.spacing import Layout
+from src.ui.design.theme_manager import ThemeManager
 
 
 class QueuePanel(ctk.CTkFrame):
@@ -16,114 +19,161 @@ class QueuePanel(ctk.CTkFrame):
         self,
         master,
         queue: QueueManager,
+        theme: ThemeManager,
         on_selection_change: Optional[Callable[[Optional[TranscriptionJob]], None]] = None,
         **kwargs,
     ) -> None:
-        super().__init__(master, corner_radius=12, **kwargs)
+        super().__init__(master, **kwargs)
         self.queue = queue
+        self.theme = theme
         self.on_selection_change = on_selection_change
         self._row_widgets: dict[str, ctk.CTkFrame] = {}
 
+        self._apply_frame_style()
+        self._build_header()
+        self._build_stats()
+        self._build_table_header()
+        self._build_scroll()
+        self._build_actions()
+
+        self._on_add_files: Optional[Callable[[], None]] = None
+        self._on_status: Optional[Callable[[str], None]] = None
+        self.update_progress(0.0, self.queue.stats)
+
+    def _apply_frame_style(self) -> None:
+        self.configure(**self.theme.frame_kwargs(elevated=True))
+
+    def refresh_theme(self) -> None:
+        self._apply_frame_style()
+        colors = self.theme.colors()
+        self.drop_hint.configure(text_color=colors["text_muted"])
+        self.stats_label.configure(text_color=colors["text_secondary"])
+        self.table_header.configure(fg_color=colors["table_header"])
+        self.refresh()
+
+    def _build_header(self) -> None:
+        colors = self.theme.colors()
         header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=16, pady=(16, 8))
+        header.pack(fill="x", padx=Layout.LG, pady=(Layout.LG, Layout.SM))
 
         ctk.CTkLabel(
             header,
-            text="Fila de transcrições",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            text="Pipeline de processamento",
+            font=panel_title(),
+            text_color=colors["text_primary"],
         ).pack(side="left")
 
         self.drop_hint = ctk.CTkLabel(
             header,
             text="Arraste arquivos aqui",
-            text_color="gray55",
-            font=ctk.CTkFont(size=12),
+            text_color=colors["text_muted"],
+            font=body_small(),
         )
-        self.drop_hint.pack(side="right", padx=8)
+        self.drop_hint.pack(side="right", padx=Layout.SM)
 
+    def _build_stats(self) -> None:
+        colors = self.theme.colors()
         self.stats_label = ctk.CTkLabel(
             self,
             text=self._stats_text(QueueStats(0, 0, 0, 0, 0, 0)),
-            font=ctk.CTkFont(size=11),
+            font=caption(),
+            text_color=colors["text_secondary"],
             anchor="w",
             justify="left",
         )
-        self.stats_label.pack(fill="x", padx=16, pady=(0, 4))
+        self.stats_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
 
-        self.overall_progress = ctk.CTkProgressBar(self)
+        self.overall_progress = ctk.CTkProgressBar(
+            self,
+            progress_color=self.theme.colors()["primary"],
+        )
         self.overall_progress.set(0)
-        self.overall_progress.pack(fill="x", padx=16, pady=(0, 8))
+        self.overall_progress.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
 
-        cols = ctk.CTkFrame(self, fg_color=("gray85", "gray25"), corner_radius=8)
-        cols.pack(fill="x", padx=16, pady=(0, 4))
+    def _build_table_header(self) -> None:
+        colors = self.theme.colors()
+        self.table_header = ctk.CTkFrame(
+            self,
+            fg_color=colors["table_header"],
+            corner_radius=Layout.CORNER_RADIUS_SM,
+        )
+        self.table_header.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
+
         for i, (text, width) in enumerate(
             [("Arquivo", 180), ("Tipo", 70), ("Status", 90), ("Saída", 200)]
         ):
             ctk.CTkLabel(
-                cols, text=text, width=width, anchor="w", font=ctk.CTkFont(weight="bold", size=11)
-            ).grid(row=0, column=i, padx=6, pady=6, sticky="w")
+                self.table_header,
+                text=text,
+                width=width,
+                anchor="w",
+                font=body_small(),
+                text_color=colors["text_secondary"],
+            ).grid(row=0, column=i, padx=Layout.SM, pady=Layout.SM, sticky="w")
 
-        self.scroll = ctk.CTkScrollableFrame(self, label_text="")
-        self.scroll.pack(fill="both", expand=True, padx=16, pady=(0, 8))
+    def _build_scroll(self) -> None:
+        self.scroll = ctk.CTkScrollableFrame(self, label_text="", fg_color="transparent")
+        self.scroll.pack(fill="both", expand=True, padx=Layout.LG, pady=(0, Layout.SM))
 
+    def _build_actions(self) -> None:
         actions = ctk.CTkFrame(self, fg_color="transparent")
-        actions.pack(fill="x", padx=16, pady=(0, 8))
+        actions.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
 
         self.btn_add = ctk.CTkButton(
-            actions, text="Adicionar Arquivos", width=130, command=self._on_add_clicked
+            actions,
+            text="Adicionar Arquivos",
+            width=140,
+            command=self._on_add_clicked,
+            **self.theme.primary_button_kwargs(),
         )
-        self.btn_add.pack(side="left", padx=(0, 6))
+        self.btn_add.pack(side="left", padx=(0, Layout.SM))
 
         self.btn_start = ctk.CTkButton(
-            actions, text="Iniciar Fila", width=100, command=self._start_queue
+            actions,
+            text="Iniciar Fila",
+            width=110,
+            command=self._start_queue,
+            **self.theme.accent_button_kwargs(),
         )
-        self.btn_start.pack(side="left", padx=4)
+        self.btn_start.pack(side="left", padx=Layout.XS)
 
         self.btn_cancel = ctk.CTkButton(
             actions,
             text="Cancelar Fila",
             width=110,
-            fg_color="#8b4513",
-            hover_color="#6b3410",
             command=self._cancel_queue,
             state="disabled",
+            **self.theme.warning_button_kwargs(),
         )
-        self.btn_cancel.pack(side="left", padx=4)
+        self.btn_cancel.pack(side="left", padx=Layout.XS)
 
         self.btn_open_folder = ctk.CTkButton(
             actions,
             text="Abrir pasta de saída",
-            width=140,
-            fg_color="transparent",
-            border_width=1,
+            width=150,
             command=self._open_output_folder,
+            **self.theme.ghost_button_kwargs(),
         )
-        self.btn_open_folder.pack(side="left", padx=4)
+        self.btn_open_folder.pack(side="left", padx=Layout.XS)
 
         actions2 = ctk.CTkFrame(self, fg_color="transparent")
-        actions2.pack(fill="x", padx=16, pady=(0, 16))
+        actions2.pack(fill="x", padx=Layout.LG, pady=(0, Layout.LG))
 
         ctk.CTkButton(
             actions2,
             text="Remover Selecionado",
-            width=140,
-            fg_color="transparent",
-            border_width=1,
+            width=150,
             command=self._remove_selected,
-        ).pack(side="left", padx=(0, 6))
+            **self.theme.ghost_button_kwargs(),
+        ).pack(side="left", padx=(0, Layout.SM))
 
         ctk.CTkButton(
             actions2,
             text="Limpar Fila",
             width=110,
-            fg_color="#8b2635",
-            hover_color="#6b1c28",
             command=self._clear_queue,
-        ).pack(side="left", padx=4)
-
-        self._on_add_files: Optional[Callable[[], None]] = None
-        self._on_status: Optional[Callable[[str], None]] = None
-        self.update_progress(0.0, self.queue.stats)
+            **self.theme.danger_button_kwargs(),
+        ).pack(side="left", padx=Layout.XS)
 
     def set_add_files_handler(self, handler: Callable[[], None]) -> None:
         self._on_add_files = handler
@@ -134,10 +184,10 @@ class QueuePanel(ctk.CTkFrame):
     @staticmethod
     def _stats_text(stats: QueueStats) -> str:
         return (
-            f"Total: {stats.total}  |  Aguardando: {stats.waiting}  |  "
-            f"Processando: {stats.processing}  |  Concluídos: {stats.completed}  |  "
+            f"Total: {stats.total}  ·  Aguardando: {stats.waiting}  ·  "
+            f"Processando: {stats.processing}  ·  Concluídos: {stats.completed}  ·  "
             f"Erros: {stats.errors}"
-            + (f"  |  Cancelados: {stats.cancelled}" if stats.cancelled else "")
+            + (f"  ·  Cancelados: {stats.cancelled}" if stats.cancelled else "")
         )
 
     def update_progress(self, value: float, stats: QueueStats) -> None:
@@ -197,22 +247,32 @@ class QueuePanel(ctk.CTkFrame):
 
         self.update_progress(self.queue.get_overall_progress(), self.queue.stats)
 
+    def _status_key(self, status: JobStatus) -> str:
+        return {
+            JobStatus.WAITING: "waiting",
+            JobStatus.PROCESSING: "processing",
+            JobStatus.COMPLETED: "completed",
+            JobStatus.ERROR: "error",
+            JobStatus.CANCELLED: "cancelled",
+        }.get(status, "waiting")
+
     def _create_row(self, job: TranscriptionJob) -> None:
-        row = ctk.CTkFrame(self.scroll, fg_color="transparent")
-        row.pack(fill="x", pady=2)
+        colors = self.theme.colors()
+        selected = self.queue.selected_job
+        is_selected = selected is not None and selected.id == job.id
+
+        row = ctk.CTkFrame(
+            self.scroll,
+            fg_color=colors["card_selected"] if is_selected else colors["card_bg"],
+            border_color=colors["border"],
+            border_width=1 if is_selected else 0,
+            corner_radius=Layout.CORNER_RADIUS_CARD,
+        )
+        row.pack(fill="x", pady=Layout.XS)
         self._row_widgets[job.id] = row
 
-        status_color = {
-            JobStatus.WAITING: "gray55",
-            JobStatus.PROCESSING: "#1a73e8",
-            JobStatus.COMPLETED: "#2e7d32",
-            JobStatus.ERROR: "#c62828",
-            JobStatus.CANCELLED: "#e65100",
-        }.get(job.status, "gray55")
-
+        status_color = self.theme.status_color(self._status_key(job.status))
         status_text = job.status.value
-        if job.status == JobStatus.ERROR and job.error_code:
-            status_text = f"{status_text}"
 
         out_display = job.output_path or "—"
         if len(out_display) > 42:
@@ -226,14 +286,20 @@ class QueuePanel(ctk.CTkFrame):
         ]
 
         for col, (text, width) in enumerate(values):
-            lbl = ctk.CTkLabel(row, text=text, width=width, anchor="w", font=ctk.CTkFont(size=11))
+            lbl = ctk.CTkLabel(
+                row,
+                text=text,
+                width=width,
+                anchor="w",
+                font=body_small(),
+                text_color=colors["text_primary"],
+            )
             if col == 2:
                 lbl.configure(text_color=status_color)
-            lbl.grid(row=0, column=col, padx=6, pady=4, sticky="w")
+            lbl.grid(row=0, column=col, padx=Layout.SM, pady=Layout.SM, sticky="w")
             lbl.bind("<Button-1>", lambda e, jid=job.id: self._select(jid))
 
         row.bind("<Button-1>", lambda e, jid=job.id: self._select(jid))
-        self._highlight_row(job.id)
 
     def _select(self, job_id: str) -> None:
         self.queue.select_job(job_id)
@@ -242,17 +308,13 @@ class QueuePanel(ctk.CTkFrame):
             self.on_selection_change(self.queue.selected_job)
 
     def _highlight_all(self) -> None:
+        colors = self.theme.colors()
         selected = self.queue.selected_job
         for jid, row in self._row_widgets.items():
             if selected and jid == selected.id:
-                row.configure(fg_color=("gray78", "gray30"))
+                row.configure(fg_color=colors["card_selected"], border_width=1, border_color=colors["primary"])
             else:
-                row.configure(fg_color="transparent")
-
-    def _highlight_row(self, job_id: str) -> None:
-        selected = self.queue.selected_job
-        if selected and selected.id == job_id:
-            self._row_widgets[job_id].configure(fg_color=("gray78", "gray30"))
+                row.configure(fg_color=colors["card_bg"], border_width=0)
 
     def update_job(self, job: TranscriptionJob) -> None:
         self.refresh()

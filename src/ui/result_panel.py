@@ -6,7 +6,11 @@ from typing import Callable, Optional
 import customtkinter as ctk
 
 from src.core.export_service import ExportService
+from src.core.settings_service import SettingsService
 from src.models.transcription_job import JobStatus, TranscriptionJob
+from src.ui.design.fonts import body_small, caption, mono, panel_title
+from src.ui.design.spacing import Layout
+from src.ui.design.theme_manager import ThemeManager
 
 PREVIEW_CHAR_LIMIT = 12_000
 
@@ -15,40 +19,60 @@ class ResultPanel(ctk.CTkFrame):
     def __init__(
         self,
         master,
+        theme: ThemeManager,
+        settings: SettingsService,
         on_status: Optional[Callable[[str], None]] = None,
         **kwargs,
     ) -> None:
-        super().__init__(master, corner_radius=12, **kwargs)
+        super().__init__(master, **kwargs)
+        self.theme = theme
+        self.settings = settings
         self.on_status = on_status
         self._export = ExportService()
         self._current_job: Optional[TranscriptionJob] = None
         self._current_text = ""
         self._preview_truncated = False
 
+        self._apply_frame_style()
+        self._build_content()
+
+    def _apply_frame_style(self) -> None:
+        self.configure(**self.theme.frame_kwargs(elevated=True))
+
+    def refresh_theme(self) -> None:
+        self._apply_frame_style()
+        colors = self.theme.colors()
+        self.meta_label.configure(text_color=colors["text_muted"])
+        self.preview_info.configure(text_color=colors["text_muted"])
+
+    def _build_content(self) -> None:
+        colors = self.theme.colors()
+
         ctk.CTkLabel(
             self,
             text="Resultado",
-            font=ctk.CTkFont(size=16, weight="bold"),
-        ).pack(pady=(12, 8), padx=16, anchor="w")
+            font=panel_title(),
+            text_color=colors["text_primary"],
+        ).pack(pady=(Layout.MD, Layout.SM), padx=Layout.LG, anchor="w")
 
         self.meta_label = ctk.CTkLabel(
             self,
             text="Selecione um item da fila para visualizar.",
-            text_color="gray55",
-            font=ctk.CTkFont(size=11),
+            text_color=colors["text_muted"],
+            font=body_small(),
             anchor="w",
             wraplength=700,
         )
-        self.meta_label.pack(fill="x", padx=16, pady=(0, 6))
+        self.meta_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
 
         preview_bar = ctk.CTkFrame(self, fg_color="transparent")
-        preview_bar.pack(fill="x", padx=16, pady=(0, 4))
+        preview_bar.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
 
         self.preview_info = ctk.CTkLabel(
             preview_bar,
             text="",
-            text_color="gray55",
-            font=ctk.CTkFont(size=10),
+            text_color=colors["text_muted"],
+            font=caption(),
             anchor="w",
         )
         self.preview_info.pack(side="left", fill="x", expand=True)
@@ -56,10 +80,11 @@ class ResultPanel(ctk.CTkFrame):
         self.btn_load_full = ctk.CTkButton(
             preview_bar,
             text="Carregar texto completo",
-            width=160,
-            height=24,
-            font=ctk.CTkFont(size=11),
+            width=170,
+            height=26,
+            font=body_small(),
             command=self._load_full_text,
+            **self.theme.ghost_button_kwargs(),
         )
         self.btn_load_full.pack(side="right")
         self.btn_load_full.pack_forget()
@@ -67,30 +92,48 @@ class ResultPanel(ctk.CTkFrame):
         self.text_box = ctk.CTkTextbox(
             self,
             height=160,
-            font=ctk.CTkFont(family="Consolas", size=12),
+            font=mono(12),
             wrap="word",
+            fg_color=colors["surface"],
+            border_color=colors["border"],
+            border_width=1,
         )
-        self.text_box.pack(fill="both", expand=True, padx=16, pady=(0, 8))
-        self.text_box.insert("1.0", "O texto transcrito ou extraído aparecerá aqui.")
+        self.text_box.pack(fill="both", expand=True, padx=Layout.LG, pady=(0, Layout.SM))
+        self.text_box.insert("1.0", "O texto processado aparecerá aqui.")
         self.text_box.configure(state="disabled")
 
         export_row = ctk.CTkFrame(self, fg_color="transparent")
-        export_row.pack(fill="x", padx=16, pady=(0, 12))
+        export_row.pack(fill="x", padx=Layout.LG, pady=(0, Layout.MD))
 
         self.btn_txt = ctk.CTkButton(
-            export_row, text="Exportar TXT", width=110, state="disabled", command=lambda: self.export_manual("txt")
+            export_row,
+            text="Exportar TXT",
+            width=110,
+            state="disabled",
+            command=lambda: self.export_manual("txt"),
+            **self.theme.ghost_button_kwargs(),
         )
-        self.btn_txt.pack(side="left", padx=4)
+        self.btn_txt.pack(side="left", padx=Layout.XS)
 
         self.btn_json = ctk.CTkButton(
-            export_row, text="Exportar JSON", width=110, state="disabled", command=lambda: self.export_manual("json")
+            export_row,
+            text="Exportar JSON",
+            width=110,
+            state="disabled",
+            command=lambda: self.export_manual("json"),
+            **self.theme.ghost_button_kwargs(),
         )
-        self.btn_json.pack(side="left", padx=4)
+        self.btn_json.pack(side="left", padx=Layout.XS)
 
         self.btn_md = ctk.CTkButton(
-            export_row, text="Exportar MD", width=110, state="disabled", command=lambda: self.export_manual("md")
+            export_row,
+            text="Exportar MD",
+            width=110,
+            state="disabled",
+            command=lambda: self.export_manual("md"),
+            **self.theme.primary_button_kwargs(),
         )
-        self.btn_md.pack(side="left", padx=4)
+        self.btn_md.pack(side="left", padx=Layout.XS)
 
     def show_job(self, job: Optional[TranscriptionJob]) -> None:
         self._current_job = job
@@ -100,7 +143,7 @@ class ResultPanel(ctk.CTkFrame):
 
         if not job:
             self._set_text_content(
-                "O texto transcrito ou extraído aparecerá aqui.",
+                "O texto processado aparecerá aqui.",
                 full_text="",
                 meta="Selecione um item da fila para visualizar.",
             )
@@ -204,7 +247,17 @@ class ResultPanel(ctk.CTkFrame):
         default_ext = f".{fmt}"
         path = fd.asksaveasfilename(defaultextension=default_ext, filetypes=extensions.get(fmt, []))
         if path:
-            self._export.save(path, self._current_text, fmt)  # type: ignore[arg-type]
+            source = self._current_job.file_path if self._current_job else path
+            self._export.save(
+                path,
+                self._current_text,
+                fmt,  # type: ignore[arg-type]
+                source_path=source,
+                export_mode=self.settings.export_mode,
+                content_template=self.settings.content_template,
+                language=self.settings.language,
+                model=self.settings.whisper_model,
+            )
             if self.on_status:
                 self.on_status(f"Arquivo salvo: {path}")
 

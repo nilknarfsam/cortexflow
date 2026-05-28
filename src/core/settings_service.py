@@ -17,6 +17,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "language": "auto",
     "output_folder": "",
     "default_export_format": "txt",
+    "export_mode": "raw",
+    "content_template": "generic",
     "whisper_model": "base",
     "max_history": 10,
 }
@@ -101,6 +103,24 @@ class SettingsService:
         self.save_settings()
 
     @property
+    def export_mode(self) -> str:
+        return str(self._settings.get("export_mode", "raw"))
+
+    @export_mode.setter
+    def export_mode(self, value: str) -> None:
+        self._settings["export_mode"] = value
+        self.save_settings()
+
+    @property
+    def content_template(self) -> str:
+        return str(self._settings.get("content_template", "generic"))
+
+    @content_template.setter
+    def content_template(self, value: str) -> None:
+        self._settings["content_template"] = value
+        self.save_settings()
+
+    @property
     def whisper_model(self) -> str:
         return str(self._settings["whisper_model"])
 
@@ -125,6 +145,10 @@ class SettingsService:
         status: str = "concluído",
         message: str = "",
         output_path: str = "",
+        export_mode: str = "",
+        template_usado: str = "",
+        pipeline_stage: str = "",
+        tipo_documento: str = "",
     ) -> None:
         entry: dict[str, str] = {
             "arquivo": file_name,
@@ -135,6 +159,14 @@ class SettingsService:
             entry["mensagem"] = message
         if output_path:
             entry["saida"] = output_path
+        if export_mode:
+            entry["export_mode"] = export_mode
+        if template_usado:
+            entry["template_usado"] = template_usado
+        if pipeline_stage:
+            entry["pipeline_stage"] = pipeline_stage
+        if tipo_documento:
+            entry["tipo_documento"] = tipo_documento
         self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:
