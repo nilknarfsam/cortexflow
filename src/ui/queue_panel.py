@@ -1,0 +1,163 @@
+from __future__ import annotations
+
+from typing import Callable, Optional
+
+import customtkinter as ctk
+
+from src.core.queue_manager import QueueManager
+from src.models.transcription_job import JobStatus, TranscriptionJob
+
+
+class QueuePanel(ctk.CTkFrame):
+    def __init__(
+        self,
+        master,
+        queue: QueueManager,
+        on_selection_change: Optional[Callable[[Optional[TranscriptionJob]], None]] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, corner_radius=12, **kwargs)
+        self.queue = queue
+        self.on_selection_change = on_selection_change
+        self._row_widgets: dict[str, ctk.CTkFrame] = {}
+
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.pack(fill="x", padx=16, pady=(16, 8))
+
+        ctk.CTkLabel(
+            header,
+            text="Fila de transcrições",
+            font=ctk.CTkFont(size=18, weight="bold"),
+        ).pack(side="left")
+
+        self.drop_hint = ctk.CTkLabel(
+            header,
+            text="Arraste arquivos aqui",
+            text_color="gray55",
+            font=ctk.CTkFont(size=12),
+        )
+        self.drop_hint.pack(side="right", padx=8)
+
+        cols = ctk.CTkFrame(self, fg_color=("gray85", "gray25"), corner_radius=8)
+        cols.pack(fill="x", padx=16, pady=(0, 4))
+        for i, (text, width) in enumerate(
+            [("Arquivo", 180), ("Tipo", 70), ("Status", 90), ("Saída", 200)]
+        ):
+            ctk.CTkLabel(cols, text=text, width=width, anchor="w", font=ctk.CTkFont(weight="bold", size=11)).grid(
+                row=0, column=i, padx=6, pady=6, sticky="w"
+            )
+
+        self.scroll = ctk.CTkScrollableFrame(self, label_text="")
+        self.scroll.pack(fill="both", expand=True, padx=16, pady=(0, 8))
+
+        actions = ctk.CTkFrame(self, fg_color="transparent")
+        actions.pack(fill="x", padx=16, pady=(0, 16))
+
+        ctk.CTkButton(actions, text="Adicionar Arquivos", width=140, command=self._on_add_clicked).pack(
+            side="left", padx=(0, 8)
+        )
+        ctk.CTkButton(actions, text="Iniciar Fila", width=120, command=self._start_queue).pack(
+            side="left", padx=4
+        )
+        ctk.CTkButton(
+            actions,
+            text="Remover Selecionado",
+            width=150,
+            fg_color="transparent",
+            border_width=1,
+            command=self._remove_selected,
+        ).pack(side="left", padx=4)
+        ctk.CTkButton(
+            actions,
+            text="Limpar Fila",
+            width=120,
+            fg_color="#8b2635",
+            hover_color="#6b1c28",
+            command=self._clear_queue,
+        ).pack(side="left", padx=4)
+
+        self._on_add_files: Optional[Callable[[], None]] = None
+
+    def set_add_files_handler(self, handler: Callable[[], None]) -> None:
+        self._on_add_files = handler
+
+    def _on_add_clicked(self) -> None:
+        if self._on_add_files:
+            self._on_add_files()
+
+    def _start_queue(self) -> None:
+        self.queue.start_queue()
+
+    def _remove_selected(self) -> None:
+        if self.queue.remove_selected():
+            self.refresh()
+
+    def _clear_queue(self) -> None:
+        self.queue.clear_queue()
+        self.refresh()
+
+    def refresh(self) -> None:
+        for widget in self.scroll.winfo_children():
+            widget.destroy()
+        self._row_widgets.clear()
+
+        for job in self.queue.jobs:
+            self._create_row(job)
+
+    def _create_row(self, job: TranscriptionJob) -> None:
+        row = ctk.CTkFrame(self.scroll, fg_color="transparent")
+        row.pack(fill="x", pady=2)
+        self._row_widgets[job.id] = row
+
+        status_color = {
+            JobStatus.WAITING: "gray55",
+            JobStatus.PROCESSING: "#1a73e8",
+            JobStatus.COMPLETED: "#2e7d32",
+            JobStatus.ERROR: "#c62828",
+        }.get(job.status, "gray55")
+
+        out_display = job.output_path or "—"
+        if len(out_display) > 42:
+            out_display = "…" + out_display[-39:]
+
+        values = [
+            (job.file_name[:28] + "…" if len(job.file_name) > 29 else job.file_name, 180),
+            (job.file_type, 70),
+            (job.status.value, 90),
+            (out_display, 200),
+        ]
+
+        for col, (text, width) in enumerate(values):
+            lbl = ctk.CTkLabel(row, text=text, width=width, anchor="w", font=ctk.CTkFont(size=11))
+            if col == 2:
+                lbl.configure(text_color=status_color)
+            lbl.grid(row=0, column=col, padx=6, pady=4, sticky="w")
+            lbl.bind("<Button-1>", lambda e, jid=job.id: self._select(jid))
+
+        row.bind("<Button-1>", lambda e, jid=job.id: self._select(jid))
+        self._highlight_row(job.id)
+
+    def _select(self, job_id: str) -> None:
+        self.queue.select_job(job_id)
+        self._highlight_all()
+        if self.on_selection_change:
+            self.on_selection_change(self.queue.selected_job)
+
+    def _highlight_all(self) -> None:
+        selected = self.queue.selected_job
+        for jid, row in self._row_widgets.items():
+            if selected and jid == selected.id:
+                row.configure(fg_color=("gray78", "gray30"))
+            else:
+                row.configure(fg_color="transparent")
+
+    def _highlight_row(self, job_id: str) -> None:
+        selected = self.queue.selected_job
+        if selected and selected.id == job_id:
+            self._row_widgets[job_id].configure(fg_color=("gray78", "gray30"))
+
+    def update_job(self, job: TranscriptionJob) -> None:
+        self.refresh()
+        if self.queue.selected_job and self.queue.selected_job.id == job.id:
+            if self.on_selection_change:
+                self.on_selection_change(job)

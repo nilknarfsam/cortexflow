@@ -2,11 +2,11 @@
 
 
 a = Analysis(
-    ['app_transcricao.py'],
+    ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('data', 'data')],
+    hiddenimports=['src', 'src.core', 'src.models', 'src.ui'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
