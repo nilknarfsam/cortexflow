@@ -27,6 +27,7 @@ class JobStatus(str, Enum):
     PROCESSING = "processando"
     COMPLETED = "concluído"
     ERROR = "erro"
+    CANCELLED = "cancelado"
 
 
 def detect_file_type(file_path: str) -> str:
@@ -56,6 +57,7 @@ class TranscriptionJob:
     output_path: str = ""
     result_text: str = ""
     error_message: str = ""
+    error_code: str = ""
 
     @property
     def file_name(self) -> str:

@@ -117,12 +117,48 @@ class SettingsService:
     def history(self) -> list[dict[str, str]]:
         return list(self._history)
 
-    def add_history_entry(self, file_name: str, file_type: str) -> None:
-        self._history.append({"arquivo": file_name, "tipo": file_type})
+    def add_history_entry(
+        self,
+        file_name: str,
+        file_type: str,
+        *,
+        status: str = "concluído",
+        message: str = "",
+        output_path: str = "",
+    ) -> None:
+        entry: dict[str, str] = {
+            "arquivo": file_name,
+            "tipo": file_type,
+            "status": status,
+        }
+        if message:
+            entry["mensagem"] = message
+        if output_path:
+            entry["saida"] = output_path
+        self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:
             self._history = self._history[-max_items:]
         self.save_history()
+
+    def add_partial_queue_history(
+        self,
+        completed: int,
+        errors: int,
+        cancelled: int,
+        total: int,
+        *,
+        reason: str = "cancelada",
+    ) -> None:
+        self.add_history_entry(
+            f"Fila ({completed}/{total})",
+            "sessão",
+            status="parcial",
+            message=(
+                f"Fila {reason}: {completed} concluído(s), "
+                f"{errors} erro(s), {cancelled} não processado(s)."
+            ),
+        )
 
     def resolve_output_dir(self, source_path: str) -> str:
         folder = self.output_folder.strip()
