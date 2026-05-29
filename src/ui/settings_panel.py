@@ -7,116 +7,9 @@ from typing import Callable, Optional
 import customtkinter as ctk
 
 from src.core.settings_service import SettingsService
-from src.ui.design.fonts import APP_NAME, APP_TAGLINE, APP_VERSION, body_small, caption, mono, panel_title
+from src.ui.design.fonts import body_small, caption, mono, panel_title
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
-
-
-class BrandSidebar(ctk.CTkFrame):
-    """Barra lateral mínima: marca, versão, slogan e atalho de configurações."""
-
-    def __init__(
-        self,
-        master,
-        theme: ThemeManager,
-        on_open_settings: Optional[Callable[[], None]] = None,
-        on_open_transcription: Optional[Callable[[], None]] = None,
-        **kwargs,
-    ) -> None:
-        super().__init__(master, **kwargs)
-        self.theme = theme
-        self.on_open_settings = on_open_settings
-        self.on_open_transcription = on_open_transcription
-        self._view = "transcription"
-        self._apply_frame_style()
-        self._build_brand()
-
-    def _apply_frame_style(self) -> None:
-        self.configure(**self.theme.sidebar_kwargs())
-
-    def refresh_theme(self) -> None:
-        self._apply_frame_style()
-        colors = self.theme.colors()
-        self.brand_tagline.configure(text_color=colors["text_secondary"])
-        self.version_badge.configure(
-            text_color=colors["text_muted"],
-            fg_color=colors["surface_elevated"],
-        )
-
-    def _build_brand(self) -> None:
-        colors = self.theme.colors()
-        brand = ctk.CTkFrame(self, fg_color="transparent")
-        brand.pack(fill="both", expand=True, padx=Layout.LG, pady=Layout.LG)
-
-        ctk.CTkLabel(
-            brand,
-            text=APP_NAME,
-            font=panel_title(),
-            text_color=colors["text_primary"],
-            anchor="w",
-        ).pack(fill="x")
-
-        self.version_badge = ctk.CTkLabel(
-            brand,
-            text=f"v{APP_VERSION}",
-            font=body_small(),
-            text_color=colors["text_muted"],
-            fg_color=colors["surface_elevated"],
-            corner_radius=6,
-            padx=6,
-            pady=1,
-            anchor="w",
-        )
-        self.version_badge.pack(fill="x", pady=(Layout.SM, 0))
-
-        self.brand_tagline = ctk.CTkLabel(
-            brand,
-            text=APP_TAGLINE,
-            font=body_small(),
-            text_color=colors["text_secondary"],
-            wraplength=180,
-            justify="left",
-            anchor="w",
-        )
-        self.brand_tagline.pack(fill="x", pady=(Layout.MD, 0))
-
-        nav = ctk.CTkFrame(brand, fg_color="transparent")
-        nav.pack(fill="x", pady=(Layout.LG, 0))
-
-        self.btn_transcription = ctk.CTkButton(
-            nav,
-            text="Transcrição",
-            command=self._open_transcription,
-            width=168,
-            **self.theme.primary_button_kwargs(),
-        )
-        self.btn_transcription.pack(fill="x", pady=(0, Layout.XS))
-
-        self.btn_settings = ctk.CTkButton(
-            nav,
-            text="Configurações",
-            command=self._open_settings,
-            width=168,
-            **self.theme.ghost_button_kwargs(),
-        )
-        self.btn_settings.pack(fill="x")
-
-    def _open_settings(self) -> None:
-        if self.on_open_settings:
-            self.on_open_settings()
-
-    def _open_transcription(self) -> None:
-        if self.on_open_transcription:
-            self.on_open_transcription()
-
-    def set_active_view(self, view: str) -> None:
-        self._view = view
-        if view == "settings":
-            self.btn_transcription.configure(**self.theme.ghost_button_kwargs())
-            self.btn_settings.configure(**self.theme.primary_button_kwargs())
-        else:
-            self.btn_transcription.configure(**self.theme.primary_button_kwargs())
-            self.btn_settings.configure(**self.theme.ghost_button_kwargs())
 
 
 class AppSettingsPanel(ctk.CTkFrame):
@@ -129,6 +22,8 @@ class AppSettingsPanel(ctk.CTkFrame):
         theme: ThemeManager,
         on_theme_change: Optional[Callable[[str], None]] = None,
         on_settings_change: Optional[Callable[[], None]] = None,
+        on_restore_queue: Optional[Callable[[], None]] = None,
+        on_clear_cache: Optional[Callable[[], None]] = None,
         **kwargs,
     ) -> None:
         super().__init__(master, fg_color="transparent", **kwargs)
@@ -136,6 +31,8 @@ class AppSettingsPanel(ctk.CTkFrame):
         self.theme = theme
         self.on_theme_change = on_theme_change
         self.on_settings_change = on_settings_change
+        self.on_restore_queue = on_restore_queue
+        self.on_clear_cache = on_clear_cache
 
         self.scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.scroll.pack(fill="both", expand=True)
@@ -433,6 +330,24 @@ class AppSettingsPanel(ctk.CTkFrame):
             wraplength=520,
             justify="left",
         ).grid(row=arow + 2, column=0, sticky="w", pady=(0, Layout.SM))
+        arow += 3
+
+        maint = ctk.CTkFrame(adv, fg_color="transparent")
+        maint.grid(row=arow, column=0, sticky="w", pady=(Layout.SM, 0))
+        ctk.CTkButton(
+            maint,
+            text="Restaurar última fila",
+            width=150,
+            command=self._restore_queue,
+            **self.theme.ghost_button_kwargs(),
+        ).pack(side="left", padx=(0, Layout.SM))
+        ctk.CTkButton(
+            maint,
+            text="Limpar cache",
+            width=110,
+            command=self._clear_cache,
+            **self.theme.warning_button_kwargs(),
+        ).pack(side="left")
 
     def _toggle_advanced(self) -> None:
         self._advanced_visible = not self._advanced_visible
@@ -494,6 +409,14 @@ class AppSettingsPanel(ctk.CTkFrame):
         if self.settings.knowledge_pipeline and self._advanced_visible:
             self._ensure_library_advanced_controls()
         self._notify_change()
+
+    def _restore_queue(self) -> None:
+        if self.on_restore_queue:
+            self.on_restore_queue()
+
+    def _clear_cache(self) -> None:
+        if self.on_clear_cache:
+            self.on_clear_cache()
 
     def _change_template(self, value: str) -> None:
         self.settings.content_template = value

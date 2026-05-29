@@ -16,7 +16,7 @@ from src.ui.components.queue_widgets import (
     StatusBadge,
     _elapsed_label,
 )
-from src.ui.design.fonts import body_small, caption, panel_title
+from src.ui.design.fonts import body_small, caption
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
 
@@ -31,138 +31,51 @@ _TABLE_COLUMNS = (
 
 
 class QueuePanel(ctk.CTkFrame):
+    """Lista de transcrição — foco principal da interface UX 3.1."""
+
     def __init__(
         self,
         master,
         queue: QueueManager,
         theme: ThemeManager,
         on_selection_change: Optional[Callable[[Optional[TranscriptionJob]], None]] = None,
+        on_view_result: Optional[Callable[[Optional[TranscriptionJob]], None]] = None,
         **kwargs,
     ) -> None:
-        super().__init__(master, **kwargs)
+        super().__init__(master, fg_color="transparent", **kwargs)
         self.queue = queue
         self.theme = theme
         self.on_selection_change = on_selection_change
+        self.on_view_result = on_view_result
         self._row_widgets: dict[str, ctk.CTkFrame] = {}
 
-        self._on_add_files: Optional[Callable[[], None]] = None
-        self._on_add_folder: Optional[Callable[[], None]] = None
         self._on_status: Optional[Callable[[str], None]] = None
         self._queue_restored = False
 
-        self._apply_frame_style()
-        self._build_toolbar()
-        self._build_stats()
-        self._build_intel_row()
         self._build_queue_card()
         self._build_details()
-        self._build_execution_actions()
-        self._build_secondary_actions()
-        self.update_progress(0.0, self.queue.stats)
         self.refresh()
 
-    def _apply_frame_style(self) -> None:
-        self.configure(**self.theme.frame_kwargs(elevated=True))
-
     def refresh_theme(self) -> None:
-        self._apply_frame_style()
         colors = self.theme.colors()
-        self.stats_label.configure(text_color=colors["text_secondary"])
-        self.cache_badge.configure(text_color=colors["text_muted"])
-        self.queue_badge.configure(text_color=colors["accent"])
-        self.cache_stats_label.configure(text_color=colors["text_secondary"])
         self.table_header.configure(fg_color=colors["table_header"])
         self.queue_card.configure(
             fg_color=colors["surface_elevated"],
             border_color=colors["border"],
         )
+        self.drop_hint.configure(text_color=colors["text_muted"])
         self.details_panel.refresh_theme()
+        self.btn_view_result.configure(**self.theme.ghost_button_kwargs())
         self.refresh()
 
     def set_queue_restored(self, restored: bool) -> None:
         self._queue_restored = restored
+
+    def set_status_handler(self, handler: Callable[[str], None]) -> None:
+        self._on_status = handler
+
+    def _build_queue_card(self) -> None:
         colors = self.theme.colors()
-        if restored:
-            self.queue_badge.configure(text="Fila restaurada", text_color=colors["accent"])
-        else:
-            self.queue_badge.configure(text="")
-
-    def refresh_cache_stats(self) -> None:
-        stats = self.queue.cache_engine.stats()
-        count = int(stats.get("item_count", 0))
-        size_b = int(stats.get("disk_bytes", 0))
-        self.cache_stats_label.configure(
-            text=f"Cache {count} itens · {self._format_bytes(size_b)}"
-        )
-
-    @staticmethod
-    def _format_bytes(n: int) -> str:
-        if n < 1024:
-            return f"{n} B"
-        if n < 1024 * 1024:
-            return f"{n / 1024:.1f} KB"
-        return f"{n / (1024 * 1024):.1f} MB"
-
-    def _update_cache_badge(self) -> None:
-        job = self.queue.selected_job
-        status = self.queue.last_cache_status
-        if job and job.cache_status:
-            status = job.cache_status
-        if status == "hit":
-            self.cache_badge.configure(text="Cache HIT", text_color=self.theme.status_color("cache_hit"))
-        elif status == "miss":
-            self.cache_badge.configure(text="Cache MISS", text_color=self.theme.status_color("cache_miss"))
-        elif status == "partial":
-            self.cache_badge.configure(text="Cache PARTIAL", text_color=self.theme.colors()["accent"])
-        else:
-            self.cache_badge.configure(text="Cache: —", text_color=self.theme.colors()["text_muted"])
-
-    def _build_toolbar(self) -> None:
-        colors = self.theme.colors()
-        toolbar = ctk.CTkFrame(self, fg_color="transparent")
-        toolbar.pack(fill="x", padx=Layout.LG, pady=(Layout.LG, Layout.SM))
-
-        ctk.CTkLabel(
-            toolbar,
-            text="Fila de transcrição",
-            font=panel_title(),
-            text_color=colors["text_primary"],
-        ).pack(side="left")
-
-        btn_frame = ctk.CTkFrame(toolbar, fg_color="transparent")
-        btn_frame.pack(side="right")
-
-        ctk.CTkButton(
-            btn_frame,
-            text="Adicionar arquivos",
-            width=140,
-            command=self._on_add_clicked,
-            **self.theme.ghost_button_kwargs(),
-        ).pack(side="left", padx=(0, Layout.XS))
-
-        ctk.CTkButton(
-            btn_frame,
-            text="Adicionar pasta",
-            width=120,
-            command=self._on_add_folder_clicked,
-            **self.theme.ghost_button_kwargs(),
-        ).pack(side="left", padx=Layout.XS)
-
-        ctk.CTkButton(
-            btn_frame,
-            text="Remover selecionado",
-            width=140,
-            command=self._remove_selected,
-            **self.theme.ghost_button_kwargs(),
-        ).pack(side="left", padx=Layout.XS)
-
-        ctk.CTkButton(
-            btn_frame,
-            text="Limpar fila",
-            width=100,
-            command=self._clear_queue,
-            **self.theme.danger_button_kwargs(),
-        ).pack(side="left", padx=(Layout.XS, 0))
 
         self.drop_hint = ctk.CTkLabel(
             self,
@@ -170,62 +83,8 @@ class QueuePanel(ctk.CTkFrame):
             text_color=colors["text_muted"],
             font=caption(),
         )
-        self.drop_hint.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
+        self.drop_hint.pack(fill="x", pady=(0, Layout.XS))
 
-    def _build_stats(self) -> None:
-        colors = self.theme.colors()
-        self.stats_label = ctk.CTkLabel(
-            self,
-            text=self._stats_text(QueueStats(0, 0, 0, 0, 0, 0)),
-            font=caption(),
-            text_color=colors["text_secondary"],
-            anchor="w",
-            justify="left",
-        )
-        self.stats_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
-
-        self.overall_progress = ctk.CTkProgressBar(
-            self,
-            progress_color=colors["primary"],
-            height=10,
-        )
-        self.overall_progress.set(0)
-        self.overall_progress.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
-
-    def _build_intel_row(self) -> None:
-        colors = self.theme.colors()
-        row = ctk.CTkFrame(self, fg_color="transparent")
-        row.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
-
-        self.cache_badge = ctk.CTkLabel(
-            row,
-            text="Cache: —",
-            font=caption(),
-            text_color=colors["text_muted"],
-            anchor="w",
-        )
-        self.cache_badge.pack(side="left", padx=(0, Layout.MD))
-
-        self.queue_badge = ctk.CTkLabel(
-            row,
-            text="",
-            font=caption(),
-            text_color=colors["accent"],
-            anchor="w",
-        )
-        self.queue_badge.pack(side="left", padx=(0, Layout.MD))
-
-        self.cache_stats_label = ctk.CTkLabel(
-            row,
-            text="Cache 0 itens · 0 B",
-            font=caption(),
-            text_color=colors["text_secondary"],
-            anchor="e",
-        )
-        self.cache_stats_label.pack(side="right")
-
-    def _build_queue_card(self) -> None:
-        colors = self.theme.colors()
         self.queue_card = ctk.CTkFrame(
             self,
             fg_color=colors["surface_elevated"],
@@ -233,7 +92,7 @@ class QueuePanel(ctk.CTkFrame):
             border_width=1,
             corner_radius=Layout.CORNER_RADIUS,
         )
-        self.queue_card.pack(fill="both", expand=True, padx=Layout.LG, pady=(0, Layout.SM))
+        self.queue_card.pack(fill="both", expand=True)
 
         self.table_header = ctk.CTkFrame(
             self.queue_card,
@@ -267,107 +126,59 @@ class QueuePanel(ctk.CTkFrame):
                 frame.grid_columnconfigure(col, weight=0, minsize=minsizes.get(col, 64))
 
     def _build_details(self) -> None:
-        self.details_panel = JobDetailsPanel(self, self.theme)
-        self.details_panel.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
+        bottom = ctk.CTkFrame(self, fg_color="transparent")
+        bottom.pack(fill="x", pady=(Layout.SM, 0))
 
-    def _build_execution_actions(self) -> None:
-        actions = ctk.CTkFrame(self, fg_color="transparent")
-        actions.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
+        self.details_panel = JobDetailsPanel(bottom, self.theme)
+        self.details_panel.pack(fill="x")
 
-        self.btn_start = ctk.CTkButton(
+        actions = ctk.CTkFrame(bottom, fg_color="transparent")
+        actions.pack(fill="x", pady=(Layout.XS, 0))
+
+        self.btn_view_result = ctk.CTkButton(
             actions,
-            text="INICIAR TRANSCRIÇÃO",
-            width=220,
-            height=42,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            command=self._start_queue,
-            **self.theme.primary_button_kwargs(),
-        )
-        self.btn_start.pack(side="left", padx=(0, Layout.MD))
-
-        self.btn_cancel = ctk.CTkButton(
-            actions,
-            text="Cancelar",
-            width=110,
-            height=36,
-            command=self._cancel_queue,
+            text="Visualizar Resultado",
+            width=160,
+            height=30,
+            command=self._view_result,
             state="disabled",
-            **self.theme.warning_button_kwargs(),
-        )
-        self.btn_cancel.pack(side="left", padx=(0, Layout.SM))
-
-        self.btn_open_folder = ctk.CTkButton(
-            actions,
-            text="Abrir pasta de saída",
-            width=150,
-            height=36,
-            command=self._open_output_folder,
             **self.theme.ghost_button_kwargs(),
         )
-        self.btn_open_folder.pack(side="left", padx=Layout.XS)
-
-    def _build_secondary_actions(self) -> None:
-        actions2 = ctk.CTkFrame(self, fg_color="transparent")
-        actions2.pack(fill="x", padx=Layout.LG, pady=(0, Layout.LG))
-
-        ctk.CTkButton(
-            actions2,
-            text="Restaurar última fila",
-            width=150,
-            command=self._restore_queue,
-            **self.theme.ghost_button_kwargs(),
-        ).pack(side="left", padx=(0, Layout.SM))
-
-        ctk.CTkButton(
-            actions2,
-            text="Limpar cache",
-            width=110,
-            command=self._clear_cache,
-            **self.theme.warning_button_kwargs(),
-        ).pack(side="left", padx=Layout.XS)
-
-    def set_add_files_handler(self, handler: Callable[[], None]) -> None:
-        self._on_add_files = handler
-
-    def set_add_folder_handler(self, handler: Callable[[], None]) -> None:
-        self._on_add_folder = handler
-
-    def set_status_handler(self, handler: Callable[[str], None]) -> None:
-        self._on_status = handler
-
-    @staticmethod
-    def _stats_text(stats: QueueStats) -> str:
-        return (
-            f"Total: {stats.total}  ·  Aguardando: {stats.waiting}  ·  "
-            f"Processando: {stats.processing}  ·  Concluídos: {stats.completed}  ·  "
-            f"Erros: {stats.errors}"
-            + (f"  ·  Cancelados: {stats.cancelled}" if stats.cancelled else "")
-        )
+        self.btn_view_result.pack(side="left")
 
     def update_progress(self, value: float, stats: QueueStats) -> None:
-        self.overall_progress.set(max(0.0, min(1.0, value)))
-        self.stats_label.configure(text=self._stats_text(stats))
-        processing = self.queue.is_processing
-        self.btn_start.configure(state="disabled" if processing else "normal")
-        self.btn_cancel.configure(state="normal" if processing else "disabled")
+        self._update_view_button()
 
-    def _on_add_clicked(self) -> None:
-        if self._on_add_files:
-            self._on_add_files()
+    def _update_view_button(self) -> None:
+        job = self.queue.selected_job
+        can_view = bool(
+            job
+            and job.status in (JobStatus.COMPLETED, JobStatus.ERROR, JobStatus.CANCELLED)
+        )
+        self.btn_view_result.configure(state="normal" if can_view else "disabled")
 
-    def _on_add_folder_clicked(self) -> None:
-        if self._on_add_folder:
-            self._on_add_folder()
+    def _view_result(self) -> None:
+        job = self.queue.selected_job
+        if self.on_view_result:
+            self.on_view_result(job)
 
-    def _start_queue(self) -> None:
+    def remove_selected(self) -> None:
+        if self.queue.remove_selected():
+            self.refresh()
+
+    def clear_queue(self) -> None:
+        self.queue.clear_queue()
+        self.refresh()
+
+    def start_queue(self) -> None:
         if not self.queue.start_queue():
             if self._on_status and self.queue.is_processing:
                 self._on_status("A fila já está em processamento.")
 
-    def _cancel_queue(self) -> None:
+    def cancel_queue(self) -> None:
         self.queue.cancel_queue()
 
-    def _open_output_folder(self) -> None:
+    def open_output_folder(self) -> None:
         job = self.queue.selected_job
         folder = self.queue.resolve_output_folder_for_job(job)
         if not folder:
@@ -387,15 +198,7 @@ class QueuePanel(ctk.CTkFrame):
             if self._on_status:
                 self._on_status(f"Não foi possível abrir a pasta: {exc}")
 
-    def _remove_selected(self) -> None:
-        if self.queue.remove_selected():
-            self.refresh()
-
-    def _clear_queue(self) -> None:
-        self.queue.clear_queue()
-        self.refresh()
-
-    def _restore_queue(self) -> None:
+    def restore_queue(self) -> None:
         if self.queue.is_processing:
             if self._on_status:
                 self._on_status("Aguarde o fim do processamento para restaurar a fila.")
@@ -408,14 +211,12 @@ class QueuePanel(ctk.CTkFrame):
         elif self._on_status:
             self._on_status("Nenhuma fila salva para restaurar.")
 
-    def _clear_cache(self) -> None:
+    def clear_cache(self) -> None:
         if self.queue.is_processing:
             if self._on_status:
                 self._on_status("Aguarde o fim do processamento para limpar o cache.")
             return
         items, _ = self.queue.clear_cache()
-        self.refresh_cache_stats()
-        self._update_cache_badge()
         if self._on_status:
             self._on_status(f"Cache limpo ({items} entrada(s) removidas).")
 
@@ -434,9 +235,7 @@ class QueuePanel(ctk.CTkFrame):
             self.scroll.pack_forget()
             self.empty_state.pack(fill="both", expand=True)
 
-        self.update_progress(self.queue.get_overall_progress(), self.queue.stats)
-        self._update_cache_badge()
-        self.refresh_cache_stats()
+        self._update_view_button()
         self.details_panel.show_job(self.queue.selected_job)
 
     def _status_key(self, status: JobStatus) -> str:
@@ -537,6 +336,7 @@ class QueuePanel(ctk.CTkFrame):
         self._highlight_all()
         job = self.queue.selected_job
         self.details_panel.show_job(job)
+        self._update_view_button()
         if self.on_selection_change:
             self.on_selection_change(job)
 
@@ -555,8 +355,8 @@ class QueuePanel(ctk.CTkFrame):
 
     def update_job(self, job: TranscriptionJob) -> None:
         self.refresh()
-        self._update_cache_badge()
         if self.queue.selected_job and self.queue.selected_job.id == job.id:
             self.details_panel.show_job(job)
+            self._update_view_button()
             if self.on_selection_change:
                 self.on_selection_change(job)

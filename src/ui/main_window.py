@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tkinter.filedialog as fd
 import tkinter.messagebox as mb
+from typing import Callable
 
 import customtkinter as ctk
 from tkinterdnd2 import DND_FILES, TkinterDnD
@@ -12,23 +13,12 @@ from src.core.queue_manager import QueueManager, QueueStats
 from src.core.settings_service import SettingsService
 from src.core.transcription_service import TranscriptionService
 from src.models.transcription_job import JobStatus, TranscriptionJob
-from src.ui.design.fonts import APP_NAME, APP_SUBTITLE, APP_VERSION, brand_subtitle, brand_title
+from src.ui.design.fonts import APP_NAME, APP_VERSION, caption
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
 from src.ui.queue_panel import QueuePanel
-from src.ui.result_panel import ResultPanel
-from src.ui.settings_panel import AppSettingsPanel, BrandSidebar
-
-_LEGACY_VIEW_ALIASES = {
-    "Pipeline": "transcription",
-    "Transcrição": "transcription",
-    "Configurações": "settings",
-    "Conhecimento": "transcription",
-    "Biblioteca": "transcription",
-    "Grafo / Conexões": "transcription",
-    "Estudo": "transcription",
-    "Datasets": "transcription",
-}
+from src.ui.result_window import ResultViewerWindow
+from src.ui.settings_modal import SettingsModal
 
 
 class MainWindow:
@@ -60,13 +50,29 @@ class MainWindow:
         )
 
         self._last_status_message = "Pronto."
-        self._current_view = "transcription"
         self.status_label = None
+        self.btn_start = None
+        self.btn_cancel = None
+
+        self.result_viewer = ResultViewerWindow.get(
+            self.root,
+            self.theme,
+            self.settings,
+            on_status=self._set_status,
+        )
+        self.settings_modal = SettingsModal(
+            self.root,
+            self.settings,
+            self.theme,
+            on_theme_change=self._on_theme_change,
+            on_settings_change=self._on_settings_change,
+            on_restore_queue=lambda: self._queue_maintenance(self.queue_panel.restore_queue),
+            on_clear_cache=lambda: self._queue_maintenance(self.queue_panel.clear_cache),
+        )
 
         self._build_layout()
         self._setup_dnd()
         self._setup_shortcuts()
-        self._restore_last_view()
         self._try_queue_recovery()
 
     def _apply_root_background(self) -> None:
@@ -74,148 +80,154 @@ class MainWindow:
         self.root.configure(bg=self.theme.colors()["surface"])
 
     def _build_layout(self) -> None:
-        self.root.grid_columnconfigure(1, weight=1)
-        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_rowconfigure(1, weight=1)
 
-        self.sidebar = BrandSidebar(
-            self.root,
-            self.theme,
-            width=Layout.SIDEBAR_WIDTH,
-            on_open_settings=self._show_settings,
-            on_open_transcription=self._show_transcription,
-        )
-        self.sidebar.grid(
-            row=0, column=0, sticky="nsew", padx=(Layout.MD, Layout.SM), pady=Layout.LG
-        )
-
-        center = ctk.CTkFrame(self.root, fg_color="transparent")
-        center.grid(row=0, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=Layout.LG)
-        center.grid_columnconfigure(0, weight=1)
-        center.grid_rowconfigure(1, weight=1)
-        center.grid_rowconfigure(2, weight=0)
-
-        self._build_header(center)
-
-        self.view_host = ctk.CTkFrame(center, fg_color="transparent")
-        self.view_host.grid(row=1, column=0, sticky="nsew")
-        self.view_host.grid_columnconfigure(0, weight=1)
-        self.view_host.grid_rowconfigure(0, weight=1)
-
-        self.transcription_frame = ctk.CTkFrame(self.view_host, fg_color="transparent")
-        self.transcription_frame.grid(row=0, column=0, sticky="nsew")
-        self.transcription_frame.grid_columnconfigure(0, weight=7)
-        self.transcription_frame.grid_columnconfigure(1, weight=3)
-        self.transcription_frame.grid_rowconfigure(0, weight=1)
-
-        self.queue_panel = QueuePanel(
-            self.transcription_frame,
-            self.queue_manager,
-            self.theme,
-            on_selection_change=self._on_job_selected,
-        )
-        self.queue_panel.grid(row=0, column=0, sticky="nsew", padx=(0, Layout.SM))
-        self.queue_panel.set_add_files_handler(self.add_files_dialog)
-        self.queue_panel.set_add_folder_handler(self.add_folder_dialog)
-        self.queue_panel.set_status_handler(self._set_status)
-
-        self.result_panel = ResultPanel(
-            self.transcription_frame,
-            self.theme,
-            self.settings,
-            on_status=self._set_status,
-        )
-        self.result_panel.grid(row=0, column=1, sticky="nsew")
-
-        self.settings_frame = ctk.CTkFrame(self.view_host, fg_color="transparent")
-        self.settings_frame.grid_columnconfigure(0, weight=1)
-        self.settings_frame.grid_rowconfigure(0, weight=1)
-
-        settings_top = ctk.CTkFrame(self.settings_frame, fg_color="transparent")
-        settings_top.pack(fill="x", pady=(0, Layout.SM))
-
-        ctk.CTkButton(
-            settings_top,
-            text="← Voltar à transcrição",
-            width=180,
-            command=self._show_transcription,
-            **self.theme.ghost_button_kwargs(),
-        ).pack(side="left")
-
-        self.settings_panel = AppSettingsPanel(
-            self.settings_frame,
-            self.settings,
-            self.theme,
-            on_theme_change=self._on_theme_change,
-            on_settings_change=self._on_settings_change,
-        )
-        self.settings_panel.pack(fill="both", expand=True)
-
-        self.status_label = ctk.CTkLabel(
-            center,
-            text=self._last_status_message,
-            font=brand_subtitle(),
-            text_color=self.theme.colors()["accent"],
-            anchor="w",
-        )
-        self.status_label.grid(row=2, column=0, sticky="ew", pady=(Layout.SM, 0))
-
-        self._show_transcription()
+        self._build_toolbar()
+        self._build_main_area()
+        self._build_status_bar()
         self._set_status(self._last_status_message)
 
-    def _build_header(self, parent: ctk.CTkFrame) -> None:
+    def _build_toolbar(self) -> None:
         colors = self.theme.colors()
-        header = ctk.CTkFrame(
-            parent,
+        toolbar = ctk.CTkFrame(
+            self.root,
             fg_color=colors["header_bg"],
             border_color=colors["border"],
             border_width=1,
             corner_radius=Layout.CORNER_RADIUS,
         )
-        header.grid(row=0, column=0, sticky="ew", pady=(0, Layout.SM))
-        header.grid_columnconfigure(0, weight=1)
+        toolbar.grid(row=0, column=0, sticky="ew", padx=Layout.LG, pady=(Layout.LG, Layout.SM))
+        toolbar.grid_columnconfigure(0, weight=1)
 
-        inner = ctk.CTkFrame(header, fg_color="transparent")
-        inner.pack(fill="x", padx=Layout.LG, pady=Layout.MD)
+        inner = ctk.CTkFrame(toolbar, fg_color="transparent")
+        inner.pack(fill="x", padx=Layout.MD, pady=Layout.SM)
 
-        ctk.CTkLabel(
+        ghost = self.theme.ghost_button_kwargs()
+        primary = self.theme.primary_button_kwargs()
+        danger = self.theme.danger_button_kwargs()
+        warning = self.theme.warning_button_kwargs()
+
+        ctk.CTkButton(
+            inner, text="Adicionar Arquivos", width=130, command=self.add_files_dialog, **ghost
+        ).pack(side="left", padx=(0, Layout.XS))
+
+        ctk.CTkButton(
+            inner, text="Adicionar Pasta", width=120, command=self.add_folder_dialog, **ghost
+        ).pack(side="left", padx=Layout.XS)
+
+        ctk.CTkButton(
             inner,
-            text=APP_NAME,
-            font=brand_title(),
-            text_color=colors["text_primary"],
-            anchor="w",
-        ).pack(anchor="w")
+            text="Remover",
+            width=90,
+            command=lambda: self.queue_panel.remove_selected(),
+            **ghost,
+        ).pack(side="left", padx=Layout.XS)
 
-        ctk.CTkLabel(
+        ctk.CTkButton(
             inner,
-            text=APP_SUBTITLE,
-            font=brand_subtitle(),
+            text="Limpar Fila",
+            width=100,
+            command=lambda: self.queue_panel.clear_queue(),
+            **danger,
+        ).pack(side="left", padx=Layout.XS)
+
+        self.btn_start = ctk.CTkButton(
+            inner,
+            text="▶ INICIAR TRANSCRIÇÃO",
+            width=200,
+            height=36,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=lambda: self.queue_panel.start_queue(),
+            **primary,
+        )
+        self.btn_start.pack(side="left", padx=(Layout.MD, Layout.XS))
+
+        self.btn_cancel = ctk.CTkButton(
+            inner,
+            text="⏹ Cancelar",
+            width=110,
+            height=36,
+            command=lambda: self.queue_panel.cancel_queue(),
+            state="disabled",
+            **warning,
+        )
+        self.btn_cancel.pack(side="left", padx=Layout.XS)
+
+        ctk.CTkButton(
+            inner,
+            text="📂 Abrir Pasta",
+            width=120,
+            height=36,
+            command=lambda: self.queue_panel.open_output_folder(),
+            **ghost,
+        ).pack(side="left", padx=Layout.XS)
+
+        ctk.CTkButton(
+            inner,
+            text="⚙ Configurações",
+            width=130,
+            height=36,
+            command=self._open_settings,
+            **ghost,
+        ).pack(side="left", padx=(Layout.XS, 0))
+
+    def _build_main_area(self) -> None:
+        main = ctk.CTkFrame(self.root, fg_color="transparent")
+        main.grid(row=1, column=0, sticky="nsew", padx=Layout.LG, pady=(0, Layout.SM))
+        main.grid_columnconfigure(0, weight=1)
+        main.grid_rowconfigure(0, weight=1)
+
+        self.queue_panel = QueuePanel(
+            main,
+            self.queue_manager,
+            self.theme,
+            on_selection_change=self._on_job_selected,
+            on_view_result=self._view_result,
+        )
+        self.queue_panel.grid(row=0, column=0, sticky="nsew")
+        self.queue_panel.set_status_handler(self._set_status)
+
+    def _build_status_bar(self) -> None:
+        colors = self.theme.colors()
+        bar = ctk.CTkFrame(
+            self.root,
+            fg_color=colors["header_bg"],
+            border_color=colors["border"],
+            border_width=1,
+            corner_radius=Layout.CORNER_RADIUS_SM,
+            height=32,
+        )
+        bar.grid(row=2, column=0, sticky="ew", padx=Layout.LG, pady=(0, Layout.LG))
+        bar.grid_propagate(False)
+
+        self.status_label = ctk.CTkLabel(
+            bar,
+            text=self._stats_text(self.queue_manager.stats),
+            font=caption(),
             text_color=colors["text_secondary"],
             anchor="w",
-            wraplength=900,
-            justify="left",
-        ).pack(anchor="w", pady=(Layout.XS, 0))
+        )
+        self.status_label.pack(fill="both", expand=True, padx=Layout.MD, pady=Layout.XS)
 
-    def _show_transcription(self) -> None:
-        self._current_view = "transcription"
-        self.settings_frame.grid_remove()
-        self.transcription_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar.set_active_view("transcription")
-        self.settings.ui_last_tab = "Transcrição"
+    @staticmethod
+    def _stats_text(stats: QueueStats) -> str:
+        return (
+            f"Total: {stats.total} | Aguardando: {stats.waiting} | "
+            f"Processando: {stats.processing} | Concluídos: {stats.completed} | "
+            f"Erros: {stats.errors}"
+        )
 
-    def _show_settings(self) -> None:
-        self._current_view = "settings"
-        self.transcription_frame.grid_remove()
-        self.settings_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar.set_active_view("settings")
-        self.settings.ui_last_tab = "Configurações"
+    def _open_settings(self) -> None:
+        self.settings_modal.show()
 
-    def _restore_last_view(self) -> None:
-        tab = self.settings.ui_last_tab
-        view = _LEGACY_VIEW_ALIASES.get(tab, "transcription")
-        if view == "settings":
-            self._show_settings()
-        else:
-            self._show_transcription()
+    def _queue_maintenance(self, action: Callable[[], None]) -> None:
+        action()
+        self.queue_panel.refresh()
+
+    def _view_result(self, job: TranscriptionJob | None) -> None:
+        if job:
+            self.result_viewer.show_job(job)
 
     def _setup_dnd(self) -> None:
         self.root.drop_target_register(DND_FILES)
@@ -228,15 +240,12 @@ class MainWindow:
 
     def _setup_shortcuts(self) -> None:
         self.root.bind_all("<Control-o>", lambda _e: self.add_files_dialog())
-        self.root.bind_all("<Control-t>", lambda _e: self.queue_manager.start_queue())
-        self.root.bind_all("<Control-e>", lambda _e: self.result_panel.export_via_shortcut())
-        self.root.bind_all("<Control-comma>", lambda _e: self._show_settings())
-        self.root.bind_all("<Escape>", lambda _e: self._show_transcription())
+        self.root.bind_all("<Control-t>", lambda _e: self.queue_panel.start_queue())
+        self.root.bind_all("<Control-e>", lambda _e: self.result_viewer.export_via_shortcut())
+        self.root.bind_all("<Control-comma>", lambda _e: self._open_settings())
         self.root.bind_all("<Control-q>", lambda _e: self.root.destroy())
 
     def _drop_event(self, event) -> None:
-        if self._current_view != "transcription":
-            self._show_transcription()
         paths = parse_dropped_paths(event.data)
         if paths:
             self._add_paths(paths)
@@ -270,7 +279,7 @@ class MainWindow:
             self._on_job_selected(self.queue_manager.selected_job)
 
     def _on_job_selected(self, job: TranscriptionJob | None) -> None:
-        self.result_panel.show_job(job)
+        pass
 
     def _on_settings_change(self) -> None:
         for job in self.queue_manager.jobs:
@@ -287,11 +296,10 @@ class MainWindow:
         colors = self.theme.colors()
         self._apply_root_background()
         if self.status_label is not None:
-            self.status_label.configure(text_color=colors["accent"])
-        self.sidebar.refresh_theme()
-        self.settings_panel.refresh_theme()
+            self.status_label.configure(text_color=colors["text_secondary"])
+        self.settings_modal.refresh_theme()
         self.queue_panel.refresh_theme()
-        self.result_panel.refresh_theme()
+        self.result_viewer.refresh_theme()
         self._set_status(f"Tema alterado para {theme}")
 
     def _on_job_updated_threadsafe(self, job: TranscriptionJob) -> None:
@@ -304,7 +312,7 @@ class MainWindow:
         self.root.after(0, lambda m=message: self._set_status(m))
 
     def _on_progress_threadsafe(self, value: float, stats: QueueStats) -> None:
-        self.root.after(0, lambda v=value, s=stats: self.queue_panel.update_progress(v, s))
+        self.root.after(0, lambda v=value, s=stats: self._update_progress(v, s))
 
     def _on_queue_recovered_threadsafe(self, meta: dict) -> None:
         self.root.after(0, lambda m=meta: self._on_queue_recovered(m))
@@ -327,33 +335,39 @@ class MainWindow:
             if self.queue_manager.jobs:
                 self.queue_manager.select_job(self.queue_manager.jobs[0].id)
                 self._on_job_selected(self.queue_manager.selected_job)
-        self.queue_panel.refresh_cache_stats()
+        self._update_progress(
+            self.queue_manager.get_overall_progress(),
+            self.queue_manager.stats,
+        )
 
     def _on_queue_recovered(self, meta: dict) -> None:
         self.queue_panel.set_queue_restored(bool(meta.get("restored")))
         self.queue_panel.refresh()
-        self.queue_panel.refresh_cache_stats()
 
     def _on_job_updated(self, job: TranscriptionJob) -> None:
         self.queue_panel.update_job(job)
-        selected = self.queue_manager.selected_job
-        if selected and selected.id == job.id:
-            self.result_panel.show_job(job)
         if job.status == JobStatus.COMPLETED:
-            self.settings_panel.refresh_history()
+            self.settings_modal.refresh_history()
 
     def _on_queue_idle(self) -> None:
-        self.queue_panel.update_progress(
+        self._update_progress(
             self.queue_manager.get_overall_progress(),
             self.queue_manager.stats,
         )
-        self.settings_panel.refresh_history()
+        self.settings_modal.refresh_history()
+
+    def _update_progress(self, value: float, stats: QueueStats) -> None:
+        self.queue_panel.update_progress(value, stats)
+        if self.status_label is not None:
+            self.status_label.configure(text=self._stats_text(stats))
+        processing = self.queue_manager.is_processing
+        if self.btn_start is not None:
+            self.btn_start.configure(state="disabled" if processing else "normal")
+        if self.btn_cancel is not None:
+            self.btn_cancel.configure(state="normal" if processing else "disabled")
 
     def _set_status(self, message: str) -> None:
         self._last_status_message = message
-
-        if hasattr(self, "status_label") and self.status_label is not None:
-            self.status_label.configure(text=message)
 
     def run(self) -> None:
         self.root.mainloop()

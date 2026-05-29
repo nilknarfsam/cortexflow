@@ -86,7 +86,7 @@ class QueueEmptyState(ctk.CTkFrame):
 
 
 class JobDetailsPanel(ctk.CTkFrame):
-    """Detalhes do item selecionado na fila."""
+    """Detalhes compactos do item selecionado — UX 3.1."""
 
     def __init__(self, master, theme: ThemeManager, **kwargs) -> None:
         super().__init__(master, **kwargs)
@@ -107,13 +107,13 @@ class JobDetailsPanel(ctk.CTkFrame):
     def _build(self) -> None:
         colors = self.theme.colors()
         header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=Layout.MD, pady=(Layout.MD, Layout.XS))
+        header.pack(fill="x", padx=Layout.MD, pady=(Layout.SM, Layout.XS))
 
         ctk.CTkLabel(
             header,
             text="Detalhes do item",
-            font=panel_title(),
-            text_color=colors["text_primary"],
+            font=body_small(),
+            text_color=colors["text_secondary"],
             anchor="w",
         ).pack(side="left")
 
@@ -122,27 +122,24 @@ class JobDetailsPanel(ctk.CTkFrame):
         self._cache_detail_badge.pack_forget()
 
         grid = ctk.CTkFrame(self, fg_color="transparent")
-        grid.pack(fill="x", padx=Layout.MD, pady=(0, Layout.MD))
-        grid.grid_columnconfigure(1, weight=1)
+        grid.pack(fill="x", padx=Layout.MD, pady=(0, Layout.SM))
+        for col in (0, 1, 2, 3):
+            grid.grid_columnconfigure(col, weight=1)
 
         labels = (
             ("Nome", "name"),
-            ("Caminho original", "path"),
-            ("Caminho de saída", "output"),
             ("Status", "status"),
             ("Cache", "cache"),
-            ("Tempo", "time"),
-            ("Modo de exportação", "export_mode"),
-            ("Tipo de conteúdo", "content"),
+            ("Saída", "output"),
         )
-        for row, (title, key) in enumerate(labels):
+        for col, (title, key) in enumerate(labels):
             ctk.CTkLabel(
                 grid,
                 text=title,
                 font=caption(),
                 text_color=colors["text_muted"],
                 anchor="w",
-            ).grid(row=row, column=0, sticky="nw", padx=(0, Layout.SM), pady=2)
+            ).grid(row=0, column=col, sticky="w", padx=(0, Layout.XS), pady=(0, 2))
             value = ctk.CTkLabel(
                 grid,
                 text="—",
@@ -150,10 +147,18 @@ class JobDetailsPanel(ctk.CTkFrame):
                 text_color=colors["text_primary"],
                 anchor="w",
                 justify="left",
-                wraplength=480,
             )
-            value.grid(row=row, column=1, sticky="ew", pady=2)
+            value.grid(row=1, column=col, sticky="ew", pady=(0, 2))
             self._fields[key] = value
+
+    @staticmethod
+    def _short_path(path: str, max_len: int = 28) -> str:
+        if not path or path == "—":
+            return "—"
+        name = path.replace("\\", "/").split("/")[-1]
+        if len(name) <= max_len:
+            return name
+        return name[: max_len - 1] + "…"
 
     def show_job(self, job: Optional[TranscriptionJob]) -> None:
         colors = self.theme.colors()
@@ -163,10 +168,8 @@ class JobDetailsPanel(ctk.CTkFrame):
             self._cache_detail_badge.pack_forget()
             return
 
-        self._fields["name"].configure(text=job.file_name, text_color=colors["text_primary"])
-        self._fields["path"].configure(text=job.file_path, text_color=colors["text_primary"])
-        self._fields["output"].configure(
-            text=job.output_path or "—",
+        self._fields["name"].configure(
+            text=self._short_path(job.file_name, 32),
             text_color=colors["text_primary"],
         )
         self._fields["status"].configure(text=job.status.value, text_color=colors["text_primary"])
@@ -174,16 +177,8 @@ class JobDetailsPanel(ctk.CTkFrame):
             text=_cache_label(job.cache_status),
             text_color=colors["text_primary"],
         )
-        self._fields["time"].configure(
-            text=_elapsed_label(job),
-            text_color=colors["text_primary"],
-        )
-        self._fields["export_mode"].configure(
-            text=job.export_mode or "—",
-            text_color=colors["text_primary"],
-        )
-        self._fields["content"].configure(
-            text=job.content_template or "—",
+        self._fields["output"].configure(
+            text=self._short_path(job.output_path or "—"),
             text_color=colors["text_primary"],
         )
 
