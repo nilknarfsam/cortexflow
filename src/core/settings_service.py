@@ -276,6 +276,10 @@ class SettingsService:
         study_mode: str = "",
         difficulty: str = "",
         study_exports: str = "",
+        graph_node_id: str = "",
+        related_documents_count: str = "",
+        semantic_search_hits: str = "",
+        graph_updated_at: str = "",
     ) -> None:
         entry: dict[str, str] = {
             "arquivo": file_name,
@@ -336,6 +340,14 @@ class SettingsService:
             entry["difficulty"] = difficulty
         if study_exports:
             entry["study_exports"] = study_exports
+        if graph_node_id:
+            entry["graph_node_id"] = graph_node_id
+        if related_documents_count:
+            entry["related_documents_count"] = related_documents_count
+        if semantic_search_hits:
+            entry["semantic_search_hits"] = semantic_search_hits
+        if graph_updated_at:
+            entry["graph_updated_at"] = graph_updated_at
         self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:

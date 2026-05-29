@@ -517,7 +517,7 @@ class QueueManager:
                     "study_exports": study_exports,
                     "study_package": semantic_meta.get("study_package", {}),
                 }
-            catalog_id, rel_summary = self._register_in_library(
+            catalog_id, rel_summary, graph_fields = self._register_in_library(
                 job,
                 file_hash=job.file_hash or (cache_lookup.file_hash if cache_lookup.fingerprint else ""),
                 pipeline_stage=pipeline_stage,
@@ -555,6 +555,10 @@ class QueueManager:
                 study_mode="sim" if export_mode == "study_mode" else "",
                 difficulty=str(job.study_metadata.get("difficulty", "")),
                 study_exports=StudyExporter.paths_display(study_exports) if study_exports else "",
+                graph_node_id=graph_fields.get("graph_node_id", ""),
+                related_documents_count=graph_fields.get("related_documents_count", ""),
+                semantic_search_hits=graph_fields.get("semantic_search_hits", ""),
+                graph_updated_at=graph_fields.get("graph_updated_at", ""),
             )
             self._logger.info("Concluído: %s -> %s", job.file_name, job.output_path)
         except Exception as exc:
@@ -601,7 +605,7 @@ class QueueManager:
         job.status = JobStatus.COMPLETED
         job.job_progress = 1.0
         self._session_completed += 1
-        catalog_id, rel_summary = self._register_in_library(
+        catalog_id, rel_summary, graph_fields = self._register_in_library(
             job,
             file_hash=job.file_hash,
             pipeline_stage="notebooklm",
@@ -624,6 +628,10 @@ class QueueManager:
             collection=col_name,
             catalog_id=catalog_id,
             semantic_relationships=rel_summary,
+            graph_node_id=graph_fields.get("graph_node_id", ""),
+            related_documents_count=graph_fields.get("related_documents_count", ""),
+            semantic_search_hits=graph_fields.get("semantic_search_hits", ""),
+            graph_updated_at=graph_fields.get("graph_updated_at", ""),
         )
         self._notify(job)
 
@@ -684,7 +692,7 @@ class QueueManager:
         file_hash: str,
         pipeline_stage: str,
         stage_metadata: dict,
-    ) -> tuple[str, str]:
+    ) -> tuple[str, str, dict[str, str]]:
         try:
             if not file_hash:
                 fp = self._cache.fingerprint(job.file_path)
@@ -709,10 +717,17 @@ class QueueManager:
                 stage_metadata=stage_metadata,
             )
             rel_summary = lib.relationships.format_for_history(entry.id)
-            return entry.id, rel_summary
+            graph_fields: dict[str, str] = {}
+            try:
+                from src.knowledge_graph import get_knowledge_graph
+
+                graph_fields = get_knowledge_graph().history_fields_for_document(entry.id)
+            except Exception:
+                pass
+            return entry.id, rel_summary, graph_fields
         except Exception as exc:
             self._logger.warning("Catalogação na biblioteca falhou: %s", exc)
-            return "", ""
+            return "", "", {}
 
     def _safe_cache_lookup(
         self,

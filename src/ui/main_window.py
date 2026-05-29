@@ -15,6 +15,7 @@ from src.models.transcription_job import JobStatus, TranscriptionJob
 from src.ui.design.fonts import APP_NAME, APP_TAGLINE, APP_VERSION, badge, brand_subtitle, brand_title
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
+from src.ui.graph_panel import GraphPanel
 from src.ui.library_panel import LibraryPanel
 from src.ui.study_panel import StudyPanel
 from src.ui.queue_panel import QueuePanel
@@ -88,6 +89,7 @@ class MainWindow:
         self.main_tabs.grid(row=0, column=0, sticky="nsew")
         self.main_tabs.add("Pipeline")
         self.main_tabs.add("Biblioteca")
+        self.main_tabs.add("Grafo / Conexões")
         self.main_tabs.add("Estudo")
 
         pipeline_tab = self.main_tabs.tab("Pipeline")
@@ -108,11 +110,22 @@ class MainWindow:
         library_tab.grid_columnconfigure(0, weight=1)
         library_tab.grid_rowconfigure(0, weight=1)
 
+        self.graph_panel = GraphPanel(
+            self.main_tabs.tab("Grafo / Conexões"),
+            self.theme,
+            on_status=self._set_status,
+        )
+        self.graph_panel.grid(row=0, column=0, sticky="nsew")
+        graph_tab = self.main_tabs.tab("Grafo / Conexões")
+        graph_tab.grid_columnconfigure(0, weight=1)
+        graph_tab.grid_rowconfigure(0, weight=1)
+
         self.library_panel = LibraryPanel(
             library_tab,
             self.settings,
             self.theme,
             on_status=self._set_status,
+            on_show_related=self._on_library_show_related,
         )
         self.library_panel.grid(row=0, column=0, sticky="nsew")
 
@@ -244,6 +257,7 @@ class MainWindow:
         self.settings_panel.refresh_theme()
         self.queue_panel.refresh_theme()
         self.library_panel.refresh_theme()
+        self.graph_panel.refresh_theme()
         self.study_panel.refresh_theme()
         self.result_panel.refresh_theme()
         self._set_status(f"Tema alterado para {theme}")
@@ -297,6 +311,7 @@ class MainWindow:
         if job.status == JobStatus.COMPLETED:
             self.settings_panel.refresh_history()
             self.library_panel.refresh()
+            self.graph_panel.refresh()
 
     def _on_queue_idle(self) -> None:
         self.queue_panel.update_progress(
@@ -305,6 +320,11 @@ class MainWindow:
         )
         self.settings_panel.refresh_history()
         self.library_panel.refresh()
+        self.graph_panel.refresh()
+
+    def _on_library_show_related(self, catalog_id: str, title: str) -> None:
+        self.main_tabs.set("Grafo / Conexões")
+        self.graph_panel.show_related(catalog_id, title)
 
     def _set_status(self, message: str) -> None:
         self.status_label.configure(text=message)

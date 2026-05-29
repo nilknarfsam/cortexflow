@@ -7,6 +7,7 @@ from typing import Callable, Optional
 
 import customtkinter as ctk
 
+from src.knowledge_graph import get_knowledge_graph
 from src.library import get_library
 from src.library.search.search_engine import SearchResult
 from src.ui.design.fonts import body_small, caption, panel_title
@@ -21,21 +22,27 @@ class LibraryPanel(ctk.CTkFrame):
         settings,
         theme: ThemeManager,
         on_status: Optional[Callable[[str], None]] = None,
+        on_show_related: Optional[Callable[[str, str], None]] = None,
         **kwargs,
     ) -> None:
         super().__init__(master, **kwargs)
         self.settings = settings
         self.theme = theme
         self.on_status = on_status
+        self.on_show_related = on_show_related
         self._library = get_library()
+        self._graph = get_knowledge_graph()
         self._selected_id: Optional[str] = None
+        self._selected_title: str = ""
         self._result_rows: dict[str, ctk.CTkFrame] = {}
 
         self._apply_frame_style()
         self._build_header()
         self._build_stats()
         self._build_filters()
+        self._build_semantic_search()
         self._build_list()
+        self._build_connected()
         self._build_topics()
         self._build_actions()
         self.refresh()
@@ -114,6 +121,36 @@ class LibraryPanel(ctk.CTkFrame):
         )
         self.collection_menu.pack(side="left")
 
+    def _build_semantic_search(self) -> None:
+        colors = self.theme.colors()
+        row = ctk.CTkFrame(self, fg_color="transparent")
+        row.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
+        row.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            row,
+            text="Busca semântica",
+            font=body_small(),
+            text_color=colors["text_secondary"],
+        ).grid(row=0, column=0, sticky="w", padx=(0, Layout.SM))
+        self.semantic_entry = ctk.CTkEntry(
+            row,
+            placeholder_text="tópicos, referências, chunks, flashcards…",
+        )
+        self.semantic_entry.grid(row=0, column=1, sticky="ew")
+        self.semantic_entry.bind("<Return>", lambda _e: self._run_semantic_search())
+        ctk.CTkButton(
+            row,
+            text="Buscar",
+            width=72,
+            command=self._run_semantic_search,
+            **self.theme.accent_button_kwargs(),
+        ).grid(row=0, column=2, padx=(Layout.SM, 0))
+
+    def _build_connected(self) -> None:
+        self.connected_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.connected_frame.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
+
     def _build_list(self) -> None:
         self.scroll = ctk.CTkScrollableFrame(self, label_text="Documentos", fg_color="transparent")
         self.scroll.pack(fill="both", expand=True, padx=Layout.LG, pady=(0, Layout.SM))
@@ -145,6 +182,14 @@ class LibraryPanel(ctk.CTkFrame):
 
         ctk.CTkButton(
             actions,
+            text="Ver relacionados",
+            width=120,
+            command=self._show_related,
+            **self.theme.ghost_button_kwargs(),
+        ).pack(side="left", padx=(0, Layout.SM))
+
+        ctk.CTkButton(
+            actions,
             text="Atualizar",
             width=100,
             command=self.refresh,
@@ -171,6 +216,7 @@ class LibraryPanel(ctk.CTkFrame):
         self._library.collections.load()
         self._library.workspaces.load()
         self._library.catalog.load()
+        self._graph.load()
 
         ws_values = ["(todos)"] + [name for _, name in self._library.workspaces.list_names()]
         self.workspace_menu.configure(values=ws_values)
@@ -258,12 +304,95 @@ class LibraryPanel(ctk.CTkFrame):
 
     def _select(self, catalog_id: str) -> None:
         self._selected_id = catalog_id
+        entry = self._library.catalog.get(catalog_id)
+        self._selected_title = entry.title if entry else catalog_id
         colors = self.theme.colors()
         for eid, row in self._result_rows.items():
             if eid == catalog_id:
                 row.configure(fg_color=colors["card_selected"], border_width=1, border_color=colors["primary"])
             else:
                 row.configure(fg_color=colors["card_bg"], border_width=0)
+
+    def _run_semantic_search(self) -> None:
+        query = self.semantic_entry.get().strip()
+        if not query:
+            return
+        self._graph.load()
+        result = self._graph.search.search(query, limit=12)
+        self._render_connected_results(result.documents, result.chunks, result.topics)
+        if self.on_status:
+            self.on_status(f"Busca semântica: {result.total_hits} hit(s).")
+
+    def _show_related(self) -> None:
+        if not self._selected_id:
+            if self.on_status:
+                self.on_status("Selecione um documento na biblioteca.")
+            return
+        self._graph.load()
+        related = self._graph.related.find_related(self._selected_id)
+        items = [
+            {
+                "label": r.get("title", r.get("document_id", "")),
+                "score": r.get("score", 0),
+                "reasons": r.get("reasons", []),
+            }
+            for r in related
+        ]
+        self._render_connected_results(items, [], [])
+        if self.on_show_related:
+            self.on_show_related(self._selected_id, self._selected_title)
+
+    def _render_connected_results(
+        self,
+        documents: list,
+        chunks: list,
+        topics: list,
+    ) -> None:
+        for w in self.connected_frame.winfo_children():
+            w.destroy()
+        colors = self.theme.colors()
+        if not documents and not chunks and not topics:
+            return
+        ctk.CTkLabel(
+            self.connected_frame,
+            text="Resultados conectados",
+            font=body_small(),
+            text_color=colors["text_primary"],
+        ).pack(anchor="w")
+        for doc in documents[:8]:
+            label = doc.get("label") or doc.get("title", "")
+            score = doc.get("score", "")
+            reasons = ", ".join(doc.get("reasons", []))
+            line = f"· {label}"
+            if score:
+                line += f" ({score})"
+            if reasons:
+                line += f" — {reasons}"
+            ctk.CTkLabel(
+                self.connected_frame,
+                text=line,
+                font=caption(),
+                text_color=colors["text_muted"],
+                anchor="w",
+                wraplength=680,
+                justify="left",
+            ).pack(anchor="w")
+        for ch in chunks[:4]:
+            ctk.CTkLabel(
+                self.connected_frame,
+                text=f"· chunk: {str(ch.get('label', ''))[:60]}",
+                font=caption(),
+                text_color=colors["text_muted"],
+                anchor="w",
+            ).pack(anchor="w")
+        for tp in topics[:4]:
+            ctk.CTkLabel(
+                self.connected_frame,
+                text=f"· tópico: {tp.get('label', '')}",
+                font=caption(),
+                text_color=colors["text_muted"],
+                anchor="w",
+            ).pack(anchor="w")
 
     def _open_selected(self) -> None:
         if not self._selected_id:

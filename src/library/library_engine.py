@@ -119,6 +119,12 @@ class KnowledgeLibrary:
 
         saved = self.catalog.register(entry)
         rels = self.relationships.build_for_document(saved.id)
+        try:
+            from src.knowledge_graph import get_knowledge_graph
+
+            get_knowledge_graph().on_document_registered(saved.id)
+        except Exception:
+            pass
         return saved, rels
 
     def search_documents(self, **kwargs: Any) -> list[SearchResult]:
