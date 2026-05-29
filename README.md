@@ -28,6 +28,7 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 * **Semantic Intelligence:** referências, highlights, tópicos, índice e chunking
 * **Knowledge Library:** workspaces, coleções, catálogo e busca local na aba **Biblioteca**
 * **Study Intelligence:** flashcards, quizzes, revisão rápida e notas (modo `study_mode`)
+* **Knowledge Graph:** busca semântica local, documentos relacionados e navegação por tópicos (aba **Grafo / Conexões**)
 
 ---
 
@@ -69,6 +70,13 @@ src/
     difficulty/
     notes/
     study_engine.py
+  knowledge_graph/             # Grafo de conhecimento e busca semântica
+    nodes/
+    edges/
+    search/
+    navigation/
+    exporters/
+    graph_engine.py
   core/
     transcription_service.py   # Whisper (singleton)
     extraction_service.py      # TXT, PDF, DOCX, XLSX, OCR
@@ -90,6 +98,7 @@ src/
     main_window.py
     queue_panel.py
     library_panel.py
+    graph_panel.py
     study_panel.py
     settings_panel.py
     result_panel.py
@@ -103,6 +112,9 @@ data/
   queue_state.json
   cache_registry.json
   cache/
+  knowledge_graph/
+    graph.json
+    graph_export.md
   logs/app.log
 ```
 
@@ -393,7 +405,7 @@ Busca textual local (sem embeddings) na aba **Biblioteca**: filtre por workspace
 
 ### Semantic Relationships
 
-`relationship_builder.py` detecta relações entre documentos por tópicos, referências, speaker e coleção compartilhados — base para futuro grafo semântico de navegação.
+`relationship_builder.py` detecta relações entre documentos por tópicos, referências, speaker e coleção compartilhados. O **Knowledge Graph** (`src/knowledge_graph/`) persiste nós e arestas em `data/knowledge_graph/graph.json` para navegação estruturada.
 
 ### Metadata expandida (YAML)
 
@@ -462,6 +474,101 @@ Classificação **básico**, **intermediário** ou **avançado** (tamanho, densi
 * Aba **Estudo** — preview de flashcards, quizzes e revisão rápida
 * Badge **Study Ready** no painel de resultado
 * Histórico: `flashcards_count`, `quizzes_count`, `difficulty`, `study_exports`
+
+---
+
+## Semantic Search
+
+Busca contextual **local e determinística** sobre o grafo de conhecimento — sem embeddings e sem APIs externas.
+
+### O que é pesquisado
+
+* Título e metadados de documentos
+* Tópicos, tags, speaker e autor
+* Referências bíblicas e highlights
+* Chunks RAG-ready
+* Flashcards e quizzes (quando exportados em `study_mode`)
+* Coleções e workspaces
+
+### Como usar
+
+1. Aba **Biblioteca** — campo **Busca semântica** e botão **Ver relacionados** no documento selecionado.
+2. Aba **Grafo / Conexões** — busca completa com motivos de conexão e exploração por tópico.
+3. Resultados mostram score simples e razões (`shared_topics`, `shared_references`, `similar_chunks`, etc.).
+
+Persistência do índice: `data/knowledge_graph/graph.json` (rebuild automático após cada documento catalogado).
+
+---
+
+## Knowledge Graph Foundation
+
+O CortexFlow conecta conteúdos em um grafo navegável preparado para RAG futuro.
+
+### Tipos de nós
+
+`document`, `topic`, `tag`, `speaker`, `author`, `collection`, `workspace`, `bible_reference`, `chunk`, `flashcard`, `quiz`
+
+### Tipos de relações
+
+`belongs_to_workspace`, `belongs_to_collection`, `has_topic`, `has_tag`, `has_reference`, `has_chunk`, `has_flashcard`, `has_quiz`, `related_by_topic`, `related_by_reference`, `related_by_speaker`, `related_by_collection`
+
+### Rebuild seguro
+
+O grafo é reconstruído a partir de:
+
+* `data/library/catalog.json`
+* `data/library/collections.json` e `workspaces.json`
+* Sidecars de estudo (`*_flashcards.json`, `*_quizzes.json`)
+* Histórico enriquecido (`catalog_id`, contagens de estudo)
+
+Botão **Reconstruir grafo** na aba **Grafo / Conexões** força sincronização manual.
+
+---
+
+## Related Documents
+
+Dado um `catalog_id`, o sistema lista documentos relacionados com score e motivos:
+
+```json
+{
+  "document_id": "doc-abc123",
+  "score": 3.6,
+  "reasons": ["shared_topics", "shared_references"]
+}
+```
+
+Critérios: tópicos e referências compartilhados, mesmo speaker/autor, mesma coleção, similaridade lexical entre chunks.
+
+---
+
+## Topic Navigation
+
+Informe um tópico (ex.: `ressurreição`) na aba **Grafo / Conexões** para listar:
+
+* Documentos catalogados
+* Chunks com esse tópico
+* Flashcards e quizzes vinculados
+* Referências bíblicas associadas
+* Coleções conectadas
+
+---
+
+## Graph Export
+
+Exportação Markdown em `data/knowledge_graph/graph_export.md` com:
+
+* Visão geral do grafo (nós, arestas, documentos conectados)
+* Tópicos mais conectados
+* Referências mais usadas
+* Coleções e documentos relacionados
+
+Botão **Exportar MD** na aba **Grafo / Conexões**.
+
+O histórico registra `graph_node_id`, `related_documents_count`, `semantic_search_hits` e `graph_updated_at`.
+
+### Preparação para embeddings e RAG
+
+O grafo reutiliza chunks semânticos já exportados pelo pipeline. Embeddings e busca vetorial serão camadas futuras sobre esta fundação — sem alterar o catálogo nem o fluxo atual.
 
 ---
 

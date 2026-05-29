@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.8.0] - 2026-05-28
+
+### Added
+
+- **Knowledge Graph Foundation** em `src/knowledge_graph/` (nós, arestas, registry).
+- **Semantic Search** — busca contextual local sem embeddings.
+- **Related Documents** e **Topic Navigation** com scores e motivos de conexão.
+- **Graph Stats** e exportação `data/knowledge_graph/graph_export.md`.
+- Persistência `data/knowledge_graph/graph.json` com rebuild a partir do catálogo.
+- Aba **Grafo / Conexões**; busca semântica e **Ver relacionados** na Biblioteca.
+- Histórico: `graph_node_id`, `related_documents_count`, `semantic_search_hits`, `graph_updated_at`.
+
+### Changed
+
+- Versão da UI **2.8**; README com seções de grafo e busca semântica.
+- `KnowledgeLibrary` atualiza o grafo após catalogar documentos.
+
 ## [2.7.0] - 2026-05-28
 
 ### Added
