@@ -149,6 +149,10 @@ class SettingsService:
         template_usado: str = "",
         pipeline_stage: str = "",
         tipo_documento: str = "",
+        referencias: str = "",
+        highlights: str = "",
+        chunks: str = "",
+        topicos: str = "",
     ) -> None:
         entry: dict[str, str] = {
             "arquivo": file_name,
@@ -167,6 +171,14 @@ class SettingsService:
             entry["pipeline_stage"] = pipeline_stage
         if tipo_documento:
             entry["tipo_documento"] = tipo_documento
+        if referencias:
+            entry["referencias"] = referencias
+        if highlights:
+            entry["highlights"] = highlights
+        if chunks:
+            entry["chunks"] = chunks
+        if topicos:
+            entry["topicos"] = topicos
         self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:

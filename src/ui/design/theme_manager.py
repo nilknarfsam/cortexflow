@@ -48,6 +48,14 @@ class ThemeManager:
             "hover_color": BRAND["primary_hover"],
         }
 
+    def option_menu_kwargs(self) -> dict:
+        """CTkOptionMenu não aceita hover_color — usa button_color."""
+        return {
+            "fg_color": BRAND["primary"],
+            "button_color": BRAND["primary_hover"],
+            "button_hover_color": BRAND["primary"],
+        }
+
     def accent_button_kwargs(self) -> dict:
         return {
             "fg_color": BRAND["accent"],

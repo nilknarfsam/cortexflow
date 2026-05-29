@@ -11,6 +11,7 @@ class ContentStage(str, Enum):
     RAW = "raw"
     CLEAN = "clean"
     AI_READY = "ai_ready"
+    SEMANTIC = "semantic"
     NOTEBOOKLM = "notebooklm"
 
 

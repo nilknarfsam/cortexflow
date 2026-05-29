@@ -50,6 +50,15 @@ def build_notebooklm_stage(
     return export_notebooklm(text, ctx)
 
 
+def build_semantic_stage(text: str, ctx: ExportContext) -> StageResult:
+    """Executa camada semântica sobre conteúdo bruto."""
+    from src.ai_ready.exporters.notebooklm_exporter import NotebookLMExporter
+
+    exporter = NotebookLMExporter()
+    ai_ready = exporter.export(text, ExportContext(**{**ctx.__dict__, "export_mode": "ai_ready"}))
+    return exporter._apply_semantic(text, ctx, ai_ready)  # noqa: SLF001
+
+
 def process_for_export(text: str, ctx: ExportContext) -> StageResult:
     """Ponto de entrada unificado — respeita export_mode do contexto."""
     return _exporter.export(text, ctx)

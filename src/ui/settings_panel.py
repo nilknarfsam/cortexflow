@@ -101,7 +101,7 @@ class SettingsPanel(ctk.CTkFrame):
             values=["System", "Light", "Dark"],
             command=self._change_theme,
             width=220,
-            **self.theme.primary_button_kwargs(),
+            **self.theme.option_menu_kwargs(),
         )
         self.theme_menu.set(self.settings.theme)
         self.theme_menu.pack(padx=Layout.LG, pady=(Layout.XS, Layout.MD), anchor="w")
@@ -246,6 +246,10 @@ class SettingsPanel(ctk.CTkFrame):
                     line += f" · {item['template_usado']}"
                 if item.get("pipeline_stage"):
                     line += f" · {item['pipeline_stage']}"
+                if item.get("topicos"):
+                    line += f" · {item['topicos'][:40]}"
+                if item.get("referencias"):
+                    line += f" · refs:{item['referencias']}"
                 if item.get("mensagem"):
                     line += f" — {item['mensagem'][:60]}"
                 self.history_box.insert("end", line + "\n")

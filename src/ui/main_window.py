@@ -37,7 +37,7 @@ class MainWindow:
         self.root.title(f"{APP_NAME} {APP_VERSION}")
         self.root.geometry("1140x740")
         self.root.minsize(920, 620)
-        self.root.configure(fg_color=self.theme.colors()["surface"])
+        self._apply_root_background()
 
         self.queue_manager = QueueManager(
             self.settings,
@@ -50,6 +50,10 @@ class MainWindow:
         self._build_layout()
         self._setup_dnd()
         self._setup_shortcuts()
+
+    def _apply_root_background(self) -> None:
+        """TkinterDnD.Tk() usa bg nativo — fg_color é exclusivo do CTk."""
+        self.root.configure(bg=self.theme.colors()["surface"])
 
     def _build_layout(self) -> None:
         self.root.grid_columnconfigure(1, weight=1)
@@ -197,7 +201,7 @@ class MainWindow:
     def _on_theme_change(self, theme: str) -> None:
         self.theme.apply(theme)
         colors = self.theme.colors()
-        self.root.configure(fg_color=colors["surface"])
+        self._apply_root_background()
         self.status_label.configure(text_color=colors["accent"])
         self.settings_panel.refresh_theme()
         self.queue_panel.refresh_theme()

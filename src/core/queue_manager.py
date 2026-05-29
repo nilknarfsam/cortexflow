@@ -282,6 +282,14 @@ class QueueManager:
             job.status = JobStatus.COMPLETED
             self._session_completed += 1
             pipeline_stage = stage.pipeline_stage if stage else self.settings.export_mode
+            semantic_meta: dict = stage.metadata if stage else {}
+            job.semantic_metadata = {
+                "reference_count": semantic_meta.get("reference_count", 0),
+                "highlight_count": semantic_meta.get("highlight_count", 0),
+                "chunk_count": semantic_meta.get("chunk_count", 0),
+                "topics": semantic_meta.get("topics", []),
+                "semantic_ready": semantic_meta.get("semantic_ready", False),
+            }
             self.settings.add_history_entry(
                 job.file_name,
                 job.file_type,
@@ -291,6 +299,10 @@ class QueueManager:
                 template_usado=self.settings.content_template,
                 pipeline_stage=pipeline_stage,
                 tipo_documento=self.settings.content_template,
+                referencias=str(job.semantic_metadata.get("reference_count", 0)),
+                highlights=str(job.semantic_metadata.get("highlight_count", 0)),
+                chunks=str(job.semantic_metadata.get("chunk_count", 0)),
+                topicos=", ".join(job.semantic_metadata.get("topics", [])[:5]),
             )
             self._logger.info("Concluído: %s -> %s", job.file_name, job.output_path)
         except Exception as exc:

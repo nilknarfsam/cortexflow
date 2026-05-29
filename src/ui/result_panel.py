@@ -8,7 +8,8 @@ import customtkinter as ctk
 from src.core.export_service import ExportService
 from src.core.settings_service import SettingsService
 from src.models.transcription_job import JobStatus, TranscriptionJob
-from src.ui.design.fonts import body_small, caption, mono, panel_title
+from src.semantic.semantic_engine import analyze_text
+from src.ui.design.fonts import badge, body_small, caption, mono, panel_title
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
 
@@ -32,6 +33,7 @@ class ResultPanel(ctk.CTkFrame):
         self._current_job: Optional[TranscriptionJob] = None
         self._current_text = ""
         self._preview_truncated = False
+        self._semantic_summary: dict = {}
 
         self._apply_frame_style()
         self._build_content()
@@ -44,16 +46,38 @@ class ResultPanel(ctk.CTkFrame):
         colors = self.theme.colors()
         self.meta_label.configure(text_color=colors["text_muted"])
         self.preview_info.configure(text_color=colors["text_muted"])
+        self.semantic_label.configure(text_color=colors["text_secondary"])
+        if self._semantic_summary.get("semantic_ready"):
+            self.semantic_badge.configure(
+                fg_color=colors["primary"],
+                text_color="#FFFFFF",
+            )
 
     def _build_content(self) -> None:
         colors = self.theme.colors()
 
+        title_row = ctk.CTkFrame(self, fg_color="transparent")
+        title_row.pack(fill="x", padx=Layout.LG, pady=(Layout.MD, Layout.SM))
+
         ctk.CTkLabel(
-            self,
+            title_row,
             text="Resultado",
             font=panel_title(),
             text_color=colors["text_primary"],
-        ).pack(pady=(Layout.MD, Layout.SM), padx=Layout.LG, anchor="w")
+        ).pack(side="left")
+
+        self.semantic_badge = ctk.CTkLabel(
+            title_row,
+            text="Semantic Ready",
+            font=badge(),
+            text_color="#FFFFFF",
+            fg_color=colors["border"],
+            corner_radius=6,
+            padx=8,
+            pady=2,
+        )
+        self.semantic_badge.pack(side="left", padx=(Layout.SM, 0))
+        self.semantic_badge.pack_forget()
 
         self.meta_label = ctk.CTkLabel(
             self,
@@ -63,7 +87,18 @@ class ResultPanel(ctk.CTkFrame):
             anchor="w",
             wraplength=700,
         )
-        self.meta_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
+        self.meta_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
+
+        self.semantic_label = ctk.CTkLabel(
+            self,
+            text="",
+            text_color=colors["text_secondary"],
+            font=caption(),
+            anchor="w",
+            wraplength=700,
+            justify="left",
+        )
+        self.semantic_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
 
         preview_bar = ctk.CTkFrame(self, fg_color="transparent")
         preview_bar.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
@@ -138,8 +173,11 @@ class ResultPanel(ctk.CTkFrame):
     def show_job(self, job: Optional[TranscriptionJob]) -> None:
         self._current_job = job
         self._preview_truncated = False
+        self._semantic_summary = {}
         self.btn_load_full.pack_forget()
         self.preview_info.configure(text="")
+        self.semantic_badge.pack_forget()
+        self.semantic_label.configure(text="")
 
         if not job:
             self._set_text_content(
@@ -178,6 +216,7 @@ class ResultPanel(ctk.CTkFrame):
 
         if job.status == JobStatus.COMPLETED:
             meta = f"{job.file_name} — salvo em: {job.output_path or '—'}"
+            self._update_semantic_preview(job)
             self._set_text_content(job.result_text or "(vazio)", full_text=job.result_text, meta=meta)
             self._set_export_enabled(bool((job.result_text or "").strip()))
             return
@@ -188,6 +227,39 @@ class ResultPanel(ctk.CTkFrame):
             meta=f"{job.file_name} — {job.status.value}",
         )
         self._set_export_enabled(False)
+
+    def _update_semantic_preview(self, job: TranscriptionJob) -> None:
+        text = job.result_text or ""
+        if not text.strip():
+            return
+
+        if job.semantic_metadata.get("semantic_ready"):
+            sm = job.semantic_metadata
+            self._semantic_summary = dict(sm)
+        else:
+            analysis = analyze_text(text)
+            self._semantic_summary = analysis.to_metadata()
+
+        colors = self.theme.colors()
+        refs = self._semantic_summary.get("reference_count", 0)
+        hi = self._semantic_summary.get("highlight_count", 0)
+        chunks = self._semantic_summary.get("chunk_count", 0)
+        topics = self._semantic_summary.get("topics", [])
+        if isinstance(topics, str):
+            topics_list = [t.strip() for t in topics.split(",") if t.strip()]
+        else:
+            topics_list = list(topics)[:5]
+
+        self.semantic_badge.configure(fg_color=colors["primary"])
+        self.semantic_badge.pack(side="left", padx=(Layout.SM, 0))
+
+        topic_text = ", ".join(topics_list) if topics_list else "—"
+        self.semantic_label.configure(
+            text=(
+                f"Referências: {refs}  ·  Highlights: {hi}  ·  "
+                f"Chunks: {chunks}  ·  Tópicos: {topic_text}"
+            )
+        )
 
     def _set_text_content(self, display_text: str, *, full_text: str, meta: str) -> None:
         self.meta_label.configure(text=meta)

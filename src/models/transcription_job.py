@@ -4,7 +4,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".flac"}
@@ -58,6 +58,7 @@ class TranscriptionJob:
     result_text: str = ""
     error_message: str = ""
     error_code: str = ""
+    semantic_metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def file_name(self) -> str:
