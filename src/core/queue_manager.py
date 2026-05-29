@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 from src.cache.cache_engine import CacheEngine, CacheLookupResult
+from src.library import get_library
 from src.core.extraction_service import ExtractionService
 from src.core.export_service import ExportService
 from src.core.job_errors import classify_job_error, format_traceback
@@ -445,6 +446,8 @@ class QueueManager:
                     self._write_cached_export(job, cached_content, metrics, recovery_used)
                     return
 
+            lib_ctx = self._library_export_context(job)
+
             metrics.start_semantic()
             metrics.start_export()
             job.output_path, stage = self._export.save_auto(
@@ -456,6 +459,7 @@ class QueueManager:
                 content_template=template,
                 language=language,
                 model=model_name,
+                library_context=lib_ctx,
             )
             metrics.stop_semantic()
             metrics.stop_export()
@@ -496,7 +500,14 @@ class QueueManager:
                 "topics": semantic_meta.get("topics", []),
                 "semantic_ready": semantic_meta.get("semantic_ready", False),
             }
+            catalog_id, rel_summary = self._register_in_library(
+                job,
+                file_hash=job.file_hash or (cache_lookup.file_hash if cache_lookup.fingerprint else ""),
+                pipeline_stage=pipeline_stage,
+                stage_metadata=semantic_meta,
+            )
             hist_fields = metrics.to_history_fields()
+            ws_name, col_name = self._library_names()
             self.settings.add_history_entry(
                 job.file_name,
                 job.file_type,
@@ -518,6 +529,10 @@ class QueueManager:
                 tempo_whisper=hist_fields["tempo_whisper"],
                 tempo_ocr=hist_fields["tempo_ocr"],
                 tempo_semantic=hist_fields["tempo_semantic"],
+                workspace=ws_name,
+                collection=col_name,
+                catalog_id=catalog_id,
+                semantic_relationships=rel_summary,
             )
             self._logger.info("Concluído: %s -> %s", job.file_name, job.output_path)
         except Exception as exc:
@@ -564,6 +579,13 @@ class QueueManager:
         job.status = JobStatus.COMPLETED
         job.job_progress = 1.0
         self._session_completed += 1
+        catalog_id, rel_summary = self._register_in_library(
+            job,
+            file_hash=job.file_hash,
+            pipeline_stage="notebooklm",
+            stage_metadata=job.semantic_metadata,
+        )
+        ws_name, col_name = self._library_names()
         self.settings.add_history_entry(
             job.file_name,
             job.file_type,
@@ -576,8 +598,91 @@ class QueueManager:
             recovery_used="sim" if recovery_used else "não",
             processing_time=f"{metrics.total_seconds:.2f}s",
             reused_pipeline="sim",
+            workspace=ws_name,
+            collection=col_name,
+            catalog_id=catalog_id,
+            semantic_relationships=rel_summary,
         )
         self._notify(job)
+
+    def _library_names(self) -> tuple[str, str]:
+        lib = get_library()
+        _, ws_name = lib.resolve_workspace(self.settings.workspace_id)
+        _, col_name = lib.resolve_collection(
+            self.settings.collection_id,
+            self.settings.collection_name,
+        )
+        return ws_name, col_name
+
+    def _library_export_context(
+        self,
+        job: TranscriptionJob,
+        *,
+        semantic_metadata: dict | None = None,
+    ) -> dict:
+        lib = get_library()
+        _, ws_name = lib.resolve_workspace(self.settings.workspace_id)
+        _, col_name = lib.resolve_collection(
+            self.settings.collection_id,
+            self.settings.collection_name,
+        )
+        meta = semantic_metadata or {}
+        chunk_count = int(meta.get("chunk_count", 0))
+        topics = list(meta.get("topics") or [])
+        score = 0.0
+        if meta:
+            from src.library.catalog.catalog_registry import CatalogRegistry
+
+            score = CatalogRegistry.compute_semantic_score(
+                reference_count=int(meta.get("reference_count", 0)),
+                highlight_count=int(meta.get("highlight_count", 0)),
+                topic_count=len(topics),
+                chunk_count=chunk_count,
+            )
+        return self.settings.library_context_for_export(
+            workspace_name=ws_name,
+            collection_name=col_name,
+            semantic_score=score,
+            chunk_count=chunk_count,
+            topics=topics,
+        )
+
+    def _register_in_library(
+        self,
+        job: TranscriptionJob,
+        *,
+        file_hash: str,
+        pipeline_stage: str,
+        stage_metadata: dict,
+    ) -> tuple[str, str]:
+        try:
+            if not file_hash:
+                fp = self._cache.fingerprint(job.file_path)
+                file_hash = fp.sha256
+            lib = get_library()
+            entry, _rels = lib.register_processed_document(
+                source_path=job.file_path,
+                output_path=job.output_path,
+                file_hash=file_hash,
+                workspace_id=self.settings.workspace_id,
+                collection_id=self.settings.collection_id,
+                collection_name=self.settings.collection_name,
+                speaker=self.settings.library_speaker,
+                author=self.settings.library_author,
+                tags=self.settings.parse_library_tags(),
+                category=self.settings.library_category,
+                knowledge_type=self.settings.knowledge_type,
+                export_mode=self.settings.export_mode,
+                template=self.settings.content_template,
+                pipeline_stage=pipeline_stage,
+                semantic_metadata=job.semantic_metadata,
+                stage_metadata=stage_metadata,
+            )
+            rel_summary = lib.relationships.format_for_history(entry.id)
+            return entry.id, rel_summary
+        except Exception as exc:
+            self._logger.warning("Catalogação na biblioteca falhou: %s", exc)
+            return "", ""
 
     def _safe_cache_lookup(
         self,

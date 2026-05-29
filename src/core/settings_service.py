@@ -21,6 +21,14 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "content_template": "generic",
     "whisper_model": "base",
     "max_history": 10,
+    "workspace_id": "ws-default",
+    "collection_id": "",
+    "collection_name": "",
+    "library_author": "",
+    "library_speaker": "",
+    "library_category": "",
+    "library_tags": "",
+    "knowledge_type": "document",
 }
 
 
@@ -134,6 +142,104 @@ class SettingsService:
         return int(self._settings["max_history"])
 
     @property
+    def workspace_id(self) -> str:
+        return str(self._settings.get("workspace_id", "ws-default"))
+
+    @workspace_id.setter
+    def workspace_id(self, value: str) -> None:
+        self._settings["workspace_id"] = value
+        self.save_settings()
+
+    @property
+    def collection_id(self) -> str:
+        return str(self._settings.get("collection_id", ""))
+
+    @collection_id.setter
+    def collection_id(self, value: str) -> None:
+        self._settings["collection_id"] = value
+        self.save_settings()
+
+    @property
+    def collection_name(self) -> str:
+        return str(self._settings.get("collection_name", ""))
+
+    @collection_name.setter
+    def collection_name(self, value: str) -> None:
+        self._settings["collection_name"] = value
+        self.save_settings()
+
+    @property
+    def library_author(self) -> str:
+        return str(self._settings.get("library_author", ""))
+
+    @library_author.setter
+    def library_author(self, value: str) -> None:
+        self._settings["library_author"] = value
+        self.save_settings()
+
+    @property
+    def library_speaker(self) -> str:
+        return str(self._settings.get("library_speaker", ""))
+
+    @library_speaker.setter
+    def library_speaker(self, value: str) -> None:
+        self._settings["library_speaker"] = value
+        self.save_settings()
+
+    @property
+    def library_category(self) -> str:
+        return str(self._settings.get("library_category", ""))
+
+    @library_category.setter
+    def library_category(self, value: str) -> None:
+        self._settings["library_category"] = value
+        self.save_settings()
+
+    @property
+    def library_tags(self) -> str:
+        return str(self._settings.get("library_tags", ""))
+
+    @library_tags.setter
+    def library_tags(self, value: str) -> None:
+        self._settings["library_tags"] = value
+        self.save_settings()
+
+    @property
+    def knowledge_type(self) -> str:
+        return str(self._settings.get("knowledge_type", "document"))
+
+    @knowledge_type.setter
+    def knowledge_type(self, value: str) -> None:
+        self._settings["knowledge_type"] = value
+        self.save_settings()
+
+    def parse_library_tags(self) -> list[str]:
+        raw = self.library_tags.replace(";", ",")
+        return [t.strip() for t in raw.split(",") if t.strip()]
+
+    def library_context_for_export(
+        self,
+        *,
+        workspace_name: str = "",
+        collection_name: str = "",
+        semantic_score: float = 0.0,
+        chunk_count: int = 0,
+        topics: list[str] | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "workspace": workspace_name,
+            "collection": collection_name,
+            "category": self.library_category,
+            "knowledge_type": self.knowledge_type,
+            "speaker": self.library_speaker,
+            "author": self.library_author,
+            "tags": self.parse_library_tags(),
+            "semantic_score": semantic_score,
+            "chunk_count": chunk_count,
+            "topics": topics,
+        }
+
+    @property
     def history(self) -> list[dict[str, str]]:
         return list(self._history)
 
@@ -161,6 +267,10 @@ class SettingsService:
         tempo_whisper: str = "",
         tempo_ocr: str = "",
         tempo_semantic: str = "",
+        workspace: str = "",
+        collection: str = "",
+        catalog_id: str = "",
+        semantic_relationships: str = "",
     ) -> None:
         entry: dict[str, str] = {
             "arquivo": file_name,
@@ -203,6 +313,14 @@ class SettingsService:
             entry["tempo_ocr"] = tempo_ocr
         if tempo_semantic:
             entry["tempo_semantic"] = tempo_semantic
+        if workspace:
+            entry["workspace"] = workspace
+        if collection:
+            entry["collection"] = collection
+        if catalog_id:
+            entry["catalog_id"] = catalog_id
+        if semantic_relationships:
+            entry["semantic_relationships"] = semantic_relationships
         self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:
