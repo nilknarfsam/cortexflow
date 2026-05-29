@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.9.0] - 2026-05-28
+
+### Added
+
+- **Premium Knowledge Workspace** — aba **Conhecimento** com busca unificada e dashboard.
+- **Unified Search Engine** — catálogo + grafo com filtros (workspace, coleção, tipo, template, modo, dificuldade).
+- **Search Result Cards** — cards com score, motivo, tópicos e ações rápidas.
+- **Document Detail Panel** — detalhe completo, relacionados e export de resumo.
+- **Knowledge Dashboard** — métricas agregadas (docs, chunks, flashcards, cache, tempo médio).
+- **Knowledge Report** — `data/knowledge_graph/knowledge_report.md`.
+- Componentes UI reutilizáveis em `src/ui/components/knowledge_widgets.py`.
+- Persistência de navegação: `ui_last_tab`, `ui_last_search_query`, filtros `ui_search_filter_*`.
+
+### Changed
+
+- Aba **Grafo / Conexões** — cards de tópicos, filtro por relação, UI refinada.
+- **Biblioteca** — botão **No Workspace**; integração com fluxo Conhecimento.
+- Versão da UI **2.9**.
+
 ## [2.8.0] - 2026-05-28
 
 ### Added

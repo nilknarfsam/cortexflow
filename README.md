@@ -29,6 +29,7 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 * **Knowledge Library:** workspaces, coleções, catálogo e busca local na aba **Biblioteca**
 * **Study Intelligence:** flashcards, quizzes, revisão rápida e notas (modo `study_mode`)
 * **Knowledge Graph:** busca semântica local, documentos relacionados e navegação por tópicos (aba **Grafo / Conexões**)
+* **Premium Workspace:** busca unificada, cards de resultado, detalhe de documento e dashboard (aba **Conhecimento**)
 
 ---
 
@@ -70,6 +71,7 @@ src/
     difficulty/
     notes/
     study_engine.py
+  knowledge/                   # Dashboard e métricas agregadas
   knowledge_graph/             # Grafo de conhecimento e busca semântica
     nodes/
     edges/
@@ -99,6 +101,9 @@ src/
     queue_panel.py
     library_panel.py
     graph_panel.py
+    knowledge_workspace_panel.py
+    document_detail_panel.py
+    components/knowledge_widgets.py
     study_panel.py
     settings_panel.py
     result_panel.py
@@ -115,6 +120,7 @@ data/
   knowledge_graph/
     graph.json
     graph_export.md
+    knowledge_report.md
   logs/app.log
 ```
 
@@ -569,6 +575,70 @@ O histórico registra `graph_node_id`, `related_documents_count`, `semantic_sear
 ### Preparação para embeddings e RAG
 
 O grafo reutiliza chunks semânticos já exportados pelo pipeline. Embeddings e busca vetorial serão camadas futuras sobre esta fundação — sem alterar o catálogo nem o fluxo atual.
+
+---
+
+## Premium Knowledge Workspace
+
+A aba **Conhecimento** é o hub central para navegar tudo que já foi processado.
+
+### Fluxo natural
+
+1. Processe arquivos na fila (**Pipeline**).
+2. O catálogo e o grafo atualizam automaticamente.
+3. Abra **Conhecimento** e use a **busca unificada**.
+4. Selecione um card de resultado.
+5. Veja o **detalhe do documento** à direita.
+6. Abra o Markdown, exporte um resumo ou veja **relacionados** no grafo.
+
+### Unified Search
+
+Busca em uma única interface:
+
+* Documentos, tópicos, tags, chunks, highlights
+* Flashcards, quizzes, referências, speakers, autores
+* Coleções e workspaces
+
+**Filtros:** workspace, coleção, tipo de nó, template, modo de exportação, dificuldade.
+
+Preferências salvas em `data/settings.json` (`ui_last_search_query`, filtros `ui_search_filter_*`, `ui_last_tab`).
+
+---
+
+## Document Details
+
+O painel de detalhe exibe:
+
+* Caminho exportado, workspace, coleção, tags, tópicos
+* Referências, highlights, chunks, flashcards e quizzes
+* Documentos relacionados com score e motivos
+
+**Ações:** abrir Markdown, abrir pasta, copiar caminho, exportar resumo (`*_knowledge_summary.md`).
+
+Na **Biblioteca**, use **No Workspace** para abrir o documento selecionado diretamente na aba Conhecimento.
+
+---
+
+## Knowledge Dashboard
+
+Faixa de métricas no topo do workspace:
+
+* Documentos, chunks, flashcards, quizzes, tópicos, relações
+* Cache hits e tempo médio de processamento (histórico)
+
+Dados agregados de catálogo, grafo e cache local.
+
+---
+
+## Knowledge Report
+
+Exportação Markdown em `data/knowledge_graph/knowledge_report.md`:
+
+* Visão geral, workspaces e coleções
+* Tópicos mais frequentes e documentos mais conectados
+* Estatísticas e recomendações de organização
+
+Botão **Relatório** na aba **Grafo / Conexões**.
 
 ---
 
