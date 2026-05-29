@@ -15,7 +15,7 @@ from src.models.transcription_job import JobStatus, TranscriptionJob
 
 QUEUE_STATE_FILE = DATA_DIR / "queue_state.json"
 STATE_VERSION = 1
-PIPELINE_CHECKPOINTS = ("whisper", "ocr", "clean", "semantic", "notebooklm")
+PIPELINE_CHECKPOINTS = ("whisper", "ocr", "clean", "semantic", "study", "notebooklm")
 
 
 def _utc_now() -> str:
@@ -122,6 +122,7 @@ class PersistentQueue:
             "error_message": job.error_message,
             "error_code": job.error_code,
             "semantic_metadata": dict(job.semantic_metadata),
+            "study_metadata": dict(job.study_metadata),
             "pipeline_progress": dict(job.pipeline_progress),
             "job_progress": job.job_progress,
             "export_mode": job.export_mode,
@@ -149,6 +150,9 @@ class PersistentQueue:
         semantic = data.get("semantic_metadata", {})
         if not isinstance(semantic, dict):
             semantic = {}
+        study = data.get("study_metadata", {})
+        if not isinstance(study, dict):
+            study = {}
         job_id = str(data.get("id") or "").strip()
         if not job_id:
             job_id = str(uuid.uuid4())
@@ -161,6 +165,7 @@ class PersistentQueue:
             error_message=str(data.get("error_message", "")),
             error_code=str(data.get("error_code", "")),
             semantic_metadata=semantic,
+            study_metadata=study,
             pipeline_progress={k: bool(v) for k, v in progress.items() if k in PIPELINE_CHECKPOINTS},
             job_progress=float(data.get("job_progress", 0.0) or 0.0),
             export_mode=str(data.get("export_mode", "")),

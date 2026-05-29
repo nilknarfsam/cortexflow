@@ -26,6 +26,7 @@ FIELD_ORDER = (
     "pipeline_stage",
     "semantic_score",
     "chunk_count",
+    "difficulty",
 )
 
 
@@ -52,6 +53,7 @@ class MetadataBuilder:
     pipeline_stage: str = ""
     semantic_score: float = 0.0
     chunk_count: int = 0
+    difficulty: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {}

@@ -8,6 +8,8 @@ from typing import Callable, Optional
 
 from src.cache.cache_engine import CacheEngine, CacheLookupResult
 from src.library import get_library
+from src.study import StudyExporter
+from src.study.study_engine import StudyResult
 from src.core.extraction_service import ExtractionService
 from src.core.export_service import ExportService
 from src.core.job_errors import classify_job_error, format_traceback
@@ -467,10 +469,16 @@ class QueueManager:
 
             if stage:
                 self._persistent.update_job_checkpoint(job, "clean", progress=0.7)
-                if export_mode in ("ai_ready", "notebooklm"):
+                if export_mode in ("ai_ready", "notebooklm", "study_mode"):
                     self._persistent.update_job_checkpoint(job, "semantic", progress=0.85)
-                if export_mode == "notebooklm":
+                if export_mode == "study_mode":
+                    self._persistent.update_job_checkpoint(job, "study", progress=0.9)
+                if export_mode in ("notebooklm", "study_mode"):
                     self._persistent.update_job_checkpoint(job, "notebooklm", progress=0.95)
+
+            study_exports: dict[str, str] = {}
+            if stage and stage.metadata.get("study_package"):
+                study_exports = self._write_study_exports(job.output_path, stage.metadata["study_package"])
 
             chunks_json = ""
             if stage and stage.metadata.get("chunks"):
@@ -500,6 +508,15 @@ class QueueManager:
                 "topics": semantic_meta.get("topics", []),
                 "semantic_ready": semantic_meta.get("semantic_ready", False),
             }
+            if semantic_meta.get("study_ready") or semantic_meta.get("study_package"):
+                job.study_metadata = {
+                    "study_ready": True,
+                    "flashcards_count": semantic_meta.get("flashcards_count", 0),
+                    "quizzes_count": semantic_meta.get("quizzes_count", 0),
+                    "difficulty": semantic_meta.get("difficulty", ""),
+                    "study_exports": study_exports,
+                    "study_package": semantic_meta.get("study_package", {}),
+                }
             catalog_id, rel_summary = self._register_in_library(
                 job,
                 file_hash=job.file_hash or (cache_lookup.file_hash if cache_lookup.fingerprint else ""),
@@ -533,6 +550,11 @@ class QueueManager:
                 collection=col_name,
                 catalog_id=catalog_id,
                 semantic_relationships=rel_summary,
+                flashcards_count=str(job.study_metadata.get("flashcards_count", "")),
+                quizzes_count=str(job.study_metadata.get("quizzes_count", "")),
+                study_mode="sim" if export_mode == "study_mode" else "",
+                difficulty=str(job.study_metadata.get("difficulty", "")),
+                study_exports=StudyExporter.paths_display(study_exports) if study_exports else "",
             )
             self._logger.info("Concluído: %s -> %s", job.file_name, job.output_path)
         except Exception as exc:
@@ -646,6 +668,14 @@ class QueueManager:
             chunk_count=chunk_count,
             topics=topics,
         )
+
+    def _write_study_exports(self, output_path: str, package: dict) -> dict[str, str]:
+        try:
+            study = StudyResult.from_package(package)
+            return StudyExporter.write_exports(output_path, study)
+        except OSError as exc:
+            self._logger.warning("Exportações de estudo falharam: %s", exc)
+            return {}
 
     def _register_in_library(
         self,

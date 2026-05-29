@@ -271,6 +271,11 @@ class SettingsService:
         collection: str = "",
         catalog_id: str = "",
         semantic_relationships: str = "",
+        flashcards_count: str = "",
+        quizzes_count: str = "",
+        study_mode: str = "",
+        difficulty: str = "",
+        study_exports: str = "",
     ) -> None:
         entry: dict[str, str] = {
             "arquivo": file_name,
@@ -321,6 +326,16 @@ class SettingsService:
             entry["catalog_id"] = catalog_id
         if semantic_relationships:
             entry["semantic_relationships"] = semantic_relationships
+        if flashcards_count:
+            entry["flashcards_count"] = flashcards_count
+        if quizzes_count:
+            entry["quizzes_count"] = quizzes_count
+        if study_mode:
+            entry["study_mode"] = study_mode
+        if difficulty:
+            entry["difficulty"] = difficulty
+        if study_exports:
+            entry["study_exports"] = study_exports
         self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:
