@@ -27,6 +27,13 @@ class ExportContext:
     speaker: str = ""
     author: str = ""
     topics: list[str] | None = None
+    workspace: str = ""
+    collection: str = ""
+    category: str = ""
+    knowledge_type: str = "document"
+    semantic_score: float = 0.0
+    chunk_count: int = 0
+    tags: list[str] | None = None
 
 
 class NotebookLMExporter:
@@ -155,13 +162,27 @@ class NotebookLMExporter:
             speaker=ctx.speaker,
             author=ctx.author,
         )
+        builder.workspace = ctx.workspace
+        builder.collection = ctx.collection
+        builder.category = ctx.category
+        builder.knowledge_type = ctx.knowledge_type or "document"
+        builder.semantic_score = ctx.semantic_score
+        builder.chunk_count = ctx.chunk_count
         if ctx.topics:
             builder.topics = list(ctx.topics)
+        if ctx.tags:
+            for t in ctx.tags:
+                if t and t not in builder.tags:
+                    builder.tags.append(t)
         if extra:
             if "topics" in extra and isinstance(extra["topics"], list):
                 builder.topics = extra["topics"]
             if "tags" in extra and isinstance(extra["tags"], list):
                 builder.tags = extra["tags"]
+            if extra.get("semantic_score"):
+                builder.semantic_score = float(extra["semantic_score"])
+            if extra.get("chunk_count"):
+                builder.chunk_count = int(extra["chunk_count"])
         return builder
 
     def _base_metadata(self, ctx: ExportContext, stage: ContentStage) -> dict[str, Any]:

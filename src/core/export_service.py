@@ -48,18 +48,30 @@ class ExportService:
         content_template: str = "generic",
         language: str = "auto",
         model: str = "",
+        library_context: dict | None = None,
     ) -> tuple[str, Optional[StageResult]]:
         mode = (export_mode or "raw").lower()
 
         if mode == "raw":
             return self.format_content(text, fmt), None
 
+        lib = library_context or {}
         ctx = ExportContext(
             source_path=source_path,
             language=language,
             model=model,
             content_template=content_template,
             export_mode=mode,
+            speaker=str(lib.get("speaker", "")),
+            author=str(lib.get("author", "")),
+            workspace=str(lib.get("workspace", "")),
+            collection=str(lib.get("collection", "")),
+            category=str(lib.get("category", "")),
+            knowledge_type=str(lib.get("knowledge_type", "document")),
+            semantic_score=float(lib.get("semantic_score", 0) or 0),
+            chunk_count=int(lib.get("chunk_count", 0) or 0),
+            tags=list(lib.get("tags") or []),
+            topics=list(lib.get("topics") or []) or None,
         )
         result = process_for_export(text, ctx)
 
@@ -87,6 +99,7 @@ class ExportService:
         content_template: str = "generic",
         language: str = "auto",
         model: str = "",
+        library_context: dict | None = None,
     ) -> tuple[str, Optional[StageResult]]:
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         content, stage = self.process_content(
@@ -97,6 +110,7 @@ class ExportService:
             content_template=content_template,
             language=language,
             model=model,
+            library_context=library_context,
         )
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -113,6 +127,7 @@ class ExportService:
         content_template: str = "generic",
         language: str = "auto",
         model: str = "",
+        library_context: dict | None = None,
     ) -> tuple[str, Optional[StageResult]]:
         out_path = self.build_output_path(source_path, output_dir, fmt)
         return self.save(
@@ -124,4 +139,5 @@ class ExportService:
             content_template=content_template,
             language=language,
             model=model,
+            library_context=library_context,
         )

@@ -11,6 +11,10 @@ FIELD_ORDER = (
     "source",
     "author",
     "speaker",
+    "workspace",
+    "collection",
+    "category",
+    "knowledge_type",
     "created_at",
     "processed_at",
     "language",
@@ -20,6 +24,8 @@ FIELD_ORDER = (
     "duration",
     "model",
     "pipeline_stage",
+    "semantic_score",
+    "chunk_count",
 )
 
 
@@ -31,6 +37,10 @@ class MetadataBuilder:
     source: str = ""
     author: str = ""
     speaker: str = ""
+    workspace: str = ""
+    collection: str = ""
+    category: str = ""
+    knowledge_type: str = ""
     created_at: str = ""
     processed_at: str = ""
     language: str = ""
@@ -40,6 +50,8 @@ class MetadataBuilder:
     duration: str = ""
     model: str = ""
     pipeline_stage: str = ""
+    semantic_score: float = 0.0
+    chunk_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {}
@@ -53,6 +65,8 @@ class MetadataBuilder:
             elif isinstance(value, str):
                 if value.strip():
                     data[key] = value.strip()
+            elif isinstance(value, (int, float)) and value:
+                data[key] = value
             elif value:
                 data[key] = value
         return data
