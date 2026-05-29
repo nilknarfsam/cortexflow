@@ -3,8 +3,13 @@ from __future__ import annotations
 import os
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".flac"}
@@ -59,6 +64,14 @@ class TranscriptionJob:
     error_message: str = ""
     error_code: str = ""
     semantic_metadata: dict[str, Any] = field(default_factory=dict)
+    pipeline_progress: dict[str, bool] = field(default_factory=dict)
+    job_progress: float = 0.0
+    export_mode: str = ""
+    content_template: str = ""
+    file_hash: str = ""
+    cache_status: str = ""
+    created_at: str = field(default_factory=_utc_now)
+    updated_at: str = ""
 
     @property
     def file_name(self) -> str:
