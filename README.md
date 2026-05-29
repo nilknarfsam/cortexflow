@@ -26,6 +26,7 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 * **Design System:** tokens visuais premium em `src/ui/design/`
 * **Pipeline AI-ready:** modos Raw, Clean, AI Ready e NotebookLM
 * **Semantic Intelligence:** referências, highlights, tópicos, índice e chunking
+* **Knowledge Library:** workspaces, coleções, catálogo e busca local na aba **Biblioteca**
 
 ---
 
@@ -52,6 +53,13 @@ src/
     hash_manager.py
     cache_engine.py
     cache_registry.py
+  library/                     # Knowledge Library Engine
+    collections/
+    workspaces/
+    catalog/
+    search/
+    metadata/
+    library_engine.py
   core/
     transcription_service.py   # Whisper (singleton)
     extraction_service.py      # TXT, PDF, DOCX, XLSX, OCR
@@ -72,9 +80,14 @@ src/
       theme_manager.py
     main_window.py
     queue_panel.py
+    library_panel.py
     settings_panel.py
     result_panel.py
 data/
+  library/
+    collections.json
+    workspaces.json
+    catalog.json
   settings.json
   historico_transcricoes.json
   queue_state.json
@@ -341,6 +354,47 @@ Registro em `data/cache_registry.json` com hash, tamanho, nome, data, export mod
 * Contador de itens e tamanho do cache
 
 O histórico registra `cache_hit`, `recovery_used`, `processing_time` e `reused_pipeline`.
+
+---
+
+## Knowledge Library Engine
+
+O CortexFlow organiza conhecimento em **unidades catalogadas**, não apenas arquivos soltos.
+
+### Workspaces
+
+Bibliotecas contextuais separadas (ex.: Instituto Renascer, Engenharia ICT). Cada workspace agrupa coleções e documentos. Configure no painel **Biblioteca** em Configurações.
+
+Persistência: `data/library/workspaces.json`
+
+### Collections
+
+Coleções temáticas: Teologia, Podcasts, Cursos, Reuniões, etc. Todo documento processado pode pertencer a uma coleção e receber tags.
+
+Persistência: `data/library/collections.json`
+
+### Catálogo inteligente
+
+Cada processamento concluído gera entrada em `data/library/catalog.json` com título, hash, workspace, coleção, speaker, autor, tópicos, referências, highlights, chunks, pipeline e caminhos de saída.
+
+### Local Search
+
+Busca textual local (sem embeddings) na aba **Biblioteca**: filtre por workspace e coleção; pesquise título, tópicos, tags e referências; ordene por data ou score semântico.
+
+### Semantic Relationships
+
+`relationship_builder.py` detecta relações entre documentos por tópicos, referências, speaker e coleção compartilhados — base para futuro grafo semântico de navegação.
+
+### Metadata expandida (YAML)
+
+Frontmatter NotebookLM inclui: `workspace`, `collection`, `category`, `knowledge_type`, `semantic_score`, `chunk_count`.
+
+### Organização cognitiva
+
+1. Escolha **workspace** e **coleção** antes de processar.
+2. Preencha autor, speaker e tags (opcional).
+3. Processe na fila — o catálogo atualiza automaticamente.
+4. Navegue e pesquise na aba **Biblioteca**; abra o Markdown exportado.
 
 ---
 

@@ -15,6 +15,7 @@ from src.models.transcription_job import JobStatus, TranscriptionJob
 from src.ui.design.fonts import APP_NAME, APP_TAGLINE, APP_VERSION, badge, brand_subtitle, brand_title
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
+from src.ui.library_panel import LibraryPanel
 from src.ui.queue_panel import QueuePanel
 from src.ui.result_panel import ResultPanel
 from src.ui.settings_panel import SettingsPanel
@@ -82,8 +83,17 @@ class MainWindow:
         center.grid_rowconfigure(0, weight=1)
         center.grid_rowconfigure(1, weight=0)
 
+        self.main_tabs = ctk.CTkTabview(center, fg_color="transparent")
+        self.main_tabs.grid(row=0, column=0, sticky="nsew")
+        self.main_tabs.add("Pipeline")
+        self.main_tabs.add("Biblioteca")
+
+        pipeline_tab = self.main_tabs.tab("Pipeline")
+        pipeline_tab.grid_columnconfigure(0, weight=1)
+        pipeline_tab.grid_rowconfigure(0, weight=1)
+
         self.queue_panel = QueuePanel(
-            center,
+            pipeline_tab,
             self.queue_manager,
             self.theme,
             on_selection_change=self._on_job_selected,
@@ -91,6 +101,18 @@ class MainWindow:
         self.queue_panel.grid(row=0, column=0, sticky="nsew")
         self.queue_panel.set_add_files_handler(self.add_files_dialog)
         self.queue_panel.set_status_handler(self._set_status)
+
+        library_tab = self.main_tabs.tab("Biblioteca")
+        library_tab.grid_columnconfigure(0, weight=1)
+        library_tab.grid_rowconfigure(0, weight=1)
+
+        self.library_panel = LibraryPanel(
+            library_tab,
+            self.settings,
+            self.theme,
+            on_status=self._set_status,
+        )
+        self.library_panel.grid(row=0, column=0, sticky="nsew")
 
         self.status_label = ctk.CTkLabel(
             center,
@@ -207,6 +229,7 @@ class MainWindow:
         self.status_label.configure(text_color=colors["accent"])
         self.settings_panel.refresh_theme()
         self.queue_panel.refresh_theme()
+        self.library_panel.refresh_theme()
         self.result_panel.refresh_theme()
         self._set_status(f"Tema alterado para {theme}")
 
@@ -257,6 +280,7 @@ class MainWindow:
             self.result_panel.show_job(job)
         if job.status == JobStatus.COMPLETED:
             self.settings_panel.refresh_history()
+            self.library_panel.refresh()
 
     def _on_queue_idle(self) -> None:
         self.queue_panel.update_progress(
@@ -264,6 +288,7 @@ class MainWindow:
             self.queue_manager.stats,
         )
         self.settings_panel.refresh_history()
+        self.library_panel.refresh()
 
     def _set_status(self, message: str) -> None:
         self.status_label.configure(text=message)

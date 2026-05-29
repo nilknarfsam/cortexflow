@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.6.0] - 2026-05-28
+
+### Added
+
+- **Knowledge Library Engine** em `src/library/` (workspaces, collections, catalog, search).
+- **Collection System** — coleções temáticas em `data/library/collections.json`.
+- **Workspace System** — bibliotecas contextuais em `data/library/workspaces.json`.
+- **Knowledge Catalog** — catálogo de documentos em `data/library/catalog.json`.
+- **Library Search** — busca textual local com filtros e ordenação.
+- **Semantic Relationships** — relações por tópicos, referências, speaker e coleção.
+- **Knowledge Stats** na UI da aba Biblioteca.
+- Aba **Biblioteca** com filtros, busca e abrir Markdown exportado.
+- Metadata YAML expandida: workspace, collection, category, knowledge_type, semantic_score, chunk_count.
+- Histórico: workspace, collection, catalog_id, semantic_relationships.
+
+### Changed
+
+- `QueueManager` cataloga automaticamente documentos concluídos.
+- `ExportContext` e painel de configurações incluem contexto de biblioteca.
+
 ## [2.5.0] - 2026-05-28
 
 ### Added

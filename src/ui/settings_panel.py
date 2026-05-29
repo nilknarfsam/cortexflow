@@ -6,6 +6,7 @@ from typing import Callable, Optional
 import customtkinter as ctk
 
 from src.core.settings_service import SettingsService
+from src.library import get_library
 from src.ui.design.fonts import APP_NAME, APP_TAGLINE, APP_VERSION, body_small, mono, panel_title, section_title
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
@@ -148,6 +149,77 @@ class SettingsPanel(ctk.CTkFrame):
         self.template_menu.set(self.settings.content_template)
         self.template_menu.pack(padx=Layout.LG, pady=(Layout.XS, Layout.MD), anchor="w")
 
+        ctk.CTkLabel(self, text="Biblioteca", font=panel_title()).pack(pady=(Layout.SM, Layout.XS), **pad)
+
+        lib = get_library()
+        ws_pairs = lib.workspaces.list_names()
+        ws_labels = [name for _, name in ws_pairs]
+        ws_ids = [wid for wid, _ in ws_pairs]
+        current_ws = self.settings.workspace_id
+        if current_ws in ws_ids:
+            ws_index = ws_ids.index(current_ws)
+        else:
+            ws_index = 0
+
+        ctk.CTkLabel(self, text="Workspace", anchor="w", font=body_small()).pack(fill="x", **pad)
+        self.workspace_menu = ctk.CTkOptionMenu(
+            self,
+            values=ws_labels or ["Biblioteca Principal"],
+            command=self._change_workspace,
+            width=220,
+        )
+        if ws_labels:
+            self.workspace_menu.set(ws_labels[ws_index])
+        self.workspace_menu.pack(padx=Layout.LG, pady=(Layout.XS, Layout.SM), anchor="w")
+        self._workspace_ids = ws_ids
+
+        col_names = lib.collections.list_names() + ["(nova…)"]
+        ctk.CTkLabel(self, text="Coleção", anchor="w", font=body_small()).pack(fill="x", **pad)
+        self.collection_menu = ctk.CTkOptionMenu(
+            self,
+            values=col_names or ["Estudos"],
+            command=self._change_collection,
+            width=220,
+        )
+        if self.settings.collection_name and self.settings.collection_name in col_names:
+            self.collection_menu.set(self.settings.collection_name)
+        elif col_names:
+            self.collection_menu.set(col_names[0])
+        self.collection_menu.pack(padx=Layout.LG, pady=(Layout.XS, Layout.SM), anchor="w")
+
+        ctk.CTkLabel(self, text="Autor", anchor="w", font=body_small()).pack(fill="x", **pad)
+        self.author_entry = ctk.CTkEntry(self, width=220, placeholder_text="opcional")
+        self.author_entry.insert(0, self.settings.library_author)
+        self.author_entry.pack(padx=Layout.LG, pady=(Layout.XS, Layout.SM), anchor="w")
+        self.author_entry.bind("<FocusOut>", lambda _e: self._save_author())
+
+        ctk.CTkLabel(self, text="Speaker", anchor="w", font=body_small()).pack(fill="x", **pad)
+        self.speaker_entry = ctk.CTkEntry(self, width=220, placeholder_text="opcional")
+        self.speaker_entry.insert(0, self.settings.library_speaker)
+        self.speaker_entry.pack(padx=Layout.LG, pady=(Layout.XS, Layout.SM), anchor="w")
+        self.speaker_entry.bind("<FocusOut>", lambda _e: self._save_speaker())
+
+        ctk.CTkLabel(self, text="Categoria / Tags", anchor="w", font=body_small()).pack(fill="x", **pad)
+        self.category_entry = ctk.CTkEntry(self, width=220, placeholder_text="categoria")
+        self.category_entry.insert(0, self.settings.library_category)
+        self.category_entry.pack(padx=Layout.LG, pady=(Layout.XS, Layout.XS), anchor="w")
+        self.category_entry.bind("<FocusOut>", lambda _e: self._save_category())
+
+        self.tags_entry = ctk.CTkEntry(self, width=220, placeholder_text="tags separadas por vírgula")
+        self.tags_entry.insert(0, self.settings.library_tags)
+        self.tags_entry.pack(padx=Layout.LG, pady=(Layout.XS, Layout.SM), anchor="w")
+        self.tags_entry.bind("<FocusOut>", lambda _e: self._save_tags())
+
+        ctk.CTkLabel(self, text="Tipo de conhecimento", anchor="w", font=body_small()).pack(fill="x", **pad)
+        self.knowledge_menu = ctk.CTkOptionMenu(
+            self,
+            values=["document", "sermon", "podcast", "course", "meeting", "research"],
+            command=self._change_knowledge_type,
+            width=220,
+        )
+        self.knowledge_menu.set(self.settings.knowledge_type)
+        self.knowledge_menu.pack(padx=Layout.LG, pady=(Layout.XS, Layout.MD), anchor="w")
+
         ctk.CTkLabel(self, text="Pasta global de saída", anchor="w", font=body_small()).pack(fill="x", **pad)
         self.output_label = ctk.CTkLabel(
             self,
@@ -214,6 +286,49 @@ class SettingsPanel(ctk.CTkFrame):
         self.settings.content_template = value
         self._notify_change()
 
+    def _change_workspace(self, value: str) -> None:
+        if hasattr(self, "_workspace_ids") and value:
+            lib = get_library()
+            for ws_id, name in lib.workspaces.list_names():
+                if name == value:
+                    self.settings.workspace_id = ws_id
+                    break
+        self._notify_change()
+
+    def _change_collection(self, value: str) -> None:
+        if value == "(nova…)":
+            return
+        lib = get_library()
+        col = lib.collections.get_by_name(value)
+        if col:
+            self.settings.collection_id = str(col["id"])
+            self.settings.collection_name = str(col.get("name", ""))
+        else:
+            created = lib.collections.create(value)
+            self.settings.collection_id = str(created["id"])
+            self.settings.collection_name = str(created.get("name", ""))
+        self._notify_change()
+
+    def _save_author(self) -> None:
+        self.settings.library_author = self.author_entry.get().strip()
+        self._notify_change()
+
+    def _save_speaker(self) -> None:
+        self.settings.library_speaker = self.speaker_entry.get().strip()
+        self._notify_change()
+
+    def _save_category(self) -> None:
+        self.settings.library_category = self.category_entry.get().strip()
+        self._notify_change()
+
+    def _save_tags(self) -> None:
+        self.settings.library_tags = self.tags_entry.get().strip()
+        self._notify_change()
+
+    def _change_knowledge_type(self, value: str) -> None:
+        self.settings.knowledge_type = value
+        self._notify_change()
+
     def _choose_output_folder(self) -> None:
         folder = fd.askdirectory(title="Pasta global de saída")
         if folder:
@@ -258,6 +373,12 @@ class SettingsPanel(ctk.CTkFrame):
                     line += " · reutilizado"
                 if item.get("recovery_used") == "sim":
                     line += " · recovery"
+                if item.get("workspace"):
+                    line += f" · {item['workspace'][:20]}"
+                if item.get("collection"):
+                    line += f" / {item['collection'][:16]}"
+                if item.get("catalog_id"):
+                    line += f" · id:{item['catalog_id'][:10]}"
                 if item.get("mensagem"):
                     line += f" — {item['mensagem'][:60]}"
                 self.history_box.insert("end", line + "\n")

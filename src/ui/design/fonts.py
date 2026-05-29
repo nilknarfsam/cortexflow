@@ -5,7 +5,7 @@ from __future__ import annotations
 import customtkinter as ctk
 
 APP_NAME = "CortexFlow"
-APP_VERSION = "2.5"
+APP_VERSION = "2.6"
 APP_TAGLINE = "Preparação inteligente de conhecimento para IA"
 
 _FONT_FAMILY = "Segoe UI"
