@@ -153,6 +153,14 @@ class SettingsService:
         highlights: str = "",
         chunks: str = "",
         topicos: str = "",
+        cache_hit: str = "",
+        recovery_used: str = "",
+        restored_queue: str = "",
+        processing_time: str = "",
+        reused_pipeline: str = "",
+        tempo_whisper: str = "",
+        tempo_ocr: str = "",
+        tempo_semantic: str = "",
     ) -> None:
         entry: dict[str, str] = {
             "arquivo": file_name,
@@ -179,6 +187,22 @@ class SettingsService:
             entry["chunks"] = chunks
         if topicos:
             entry["topicos"] = topicos
+        if cache_hit:
+            entry["cache_hit"] = cache_hit
+        if recovery_used:
+            entry["recovery_used"] = recovery_used
+        if restored_queue:
+            entry["restored_queue"] = restored_queue
+        if processing_time:
+            entry["processing_time"] = processing_time
+        if reused_pipeline:
+            entry["reused_pipeline"] = reused_pipeline
+        if tempo_whisper:
+            entry["tempo_whisper"] = tempo_whisper
+        if tempo_ocr:
+            entry["tempo_ocr"] = tempo_ocr
+        if tempo_semantic:
+            entry["tempo_semantic"] = tempo_semantic
         self._history.append(entry)
         max_items = self.max_history
         if len(self._history) > max_items:
@@ -193,6 +217,8 @@ class SettingsService:
         total: int,
         *,
         reason: str = "cancelada",
+        recovery_used: bool = False,
+        restored_queue: bool = False,
     ) -> None:
         self.add_history_entry(
             f"Fila ({completed}/{total})",
@@ -202,6 +228,8 @@ class SettingsService:
                 f"Fila {reason}: {completed} concluído(s), "
                 f"{errors} erro(s), {cancelled} não processado(s)."
             ),
+            recovery_used="sim" if recovery_used else "",
+            restored_queue="sim" if restored_queue else "",
         )
 
     def resolve_output_dir(self, source_path: str) -> str:

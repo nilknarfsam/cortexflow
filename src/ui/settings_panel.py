@@ -250,6 +250,14 @@ class SettingsPanel(ctk.CTkFrame):
                     line += f" · {item['topicos'][:40]}"
                 if item.get("referencias"):
                     line += f" · refs:{item['referencias']}"
+                if item.get("cache_hit"):
+                    line += f" · cache:{item['cache_hit']}"
+                if item.get("processing_time"):
+                    line += f" · {item['processing_time']}"
+                if item.get("reused_pipeline") == "sim":
+                    line += " · reutilizado"
+                if item.get("recovery_used") == "sim":
+                    line += " · recovery"
                 if item.get("mensagem"):
                     line += f" — {item['mensagem'][:60]}"
                 self.history_box.insert("end", line + "\n")
