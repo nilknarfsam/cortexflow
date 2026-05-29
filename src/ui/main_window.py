@@ -18,6 +18,7 @@ from src.ui.design.theme_manager import ThemeManager
 from src.ui.graph_panel import GraphPanel
 from src.ui.knowledge_workspace_panel import KnowledgeWorkspacePanel
 from src.ui.library_panel import LibraryPanel
+from src.ui.dataset_panel import DatasetPanel
 from src.ui.study_panel import StudyPanel
 from src.ui.queue_panel import QueuePanel
 from src.ui.result_panel import ResultPanel
@@ -93,6 +94,7 @@ class MainWindow:
         self.main_tabs.add("Biblioteca")
         self.main_tabs.add("Grafo / Conexões")
         self.main_tabs.add("Estudo")
+        self.main_tabs.add("Datasets")
 
         pipeline_tab = self.main_tabs.tab("Pipeline")
         pipeline_tab.grid_columnconfigure(0, weight=1)
@@ -158,6 +160,17 @@ class MainWindow:
             on_status=self._set_status,
         )
         self.study_panel.grid(row=0, column=0, sticky="nsew")
+
+        datasets_tab = self.main_tabs.tab("Datasets")
+        datasets_tab.grid_columnconfigure(0, weight=1)
+        datasets_tab.grid_rowconfigure(0, weight=1)
+
+        self.dataset_panel = DatasetPanel(
+            datasets_tab,
+            self.theme,
+            on_status=self._set_status,
+        )
+        self.dataset_panel.grid(row=0, column=0, sticky="nsew")
 
         self.status_label = ctk.CTkLabel(
             center,
@@ -257,6 +270,7 @@ class MainWindow:
     def _on_job_selected(self, job: TranscriptionJob | None) -> None:
         self.result_panel.show_job(job)
         self.study_panel.show_job(job)
+        self.dataset_panel.show_job(job)
 
     def _on_settings_change(self) -> None:
         for job in self.queue_manager.jobs:
@@ -279,6 +293,7 @@ class MainWindow:
         self.library_panel.refresh_theme()
         self.graph_panel.refresh_theme()
         self.study_panel.refresh_theme()
+        self.dataset_panel.refresh_theme()
         self.result_panel.refresh_theme()
         self._set_status(f"Tema alterado para {theme}")
 
@@ -328,11 +343,13 @@ class MainWindow:
         if selected and selected.id == job.id:
             self.result_panel.show_job(job)
             self.study_panel.show_job(job)
+        self.dataset_panel.show_job(job)
         if job.status == JobStatus.COMPLETED:
             self.settings_panel.refresh_history()
             self.library_panel.refresh()
             self.workspace_panel.refresh()
             self.graph_panel.refresh()
+            self.dataset_panel.refresh()
 
     def _on_queue_idle(self) -> None:
         self.queue_panel.update_progress(
@@ -343,6 +360,7 @@ class MainWindow:
         self.library_panel.refresh()
         self.workspace_panel.refresh()
         self.graph_panel.refresh()
+        self.dataset_panel.refresh()
 
     def _wrap_tab_persistence(self) -> None:
         seg = self.main_tabs._segmented_button
@@ -360,7 +378,7 @@ class MainWindow:
 
     def _restore_last_tab(self) -> None:
         tab = self.settings.ui_last_tab
-        valid = ("Pipeline", "Conhecimento", "Biblioteca", "Grafo / Conexões", "Estudo")
+        valid = ("Pipeline", "Conhecimento", "Biblioteca", "Grafo / Conexões", "Estudo", "Datasets")
         if tab in valid:
             try:
                 self.main_tabs.set(tab)

@@ -20,6 +20,8 @@ class KnowledgeDashboardStats:
     relations: int = 0
     workspaces: int = 0
     collections: int = 0
+    datasets: int = 0
+    avg_readiness_score: float = 0.0
     cache_hits: int = 0
     cache_total: int = 0
     avg_processing_seconds: float = 0.0
@@ -35,8 +37,15 @@ class KnowledgeDashboardStats:
             if self.avg_processing_seconds > 0
             else "—"
         )
+        readiness = (
+            f"{self.avg_readiness_score:.0f}"
+            if self.avg_readiness_score > 0
+            else "—"
+        )
         return [
             ("Documentos", str(self.documents), "catalog"),
+            ("Datasets", str(self.datasets), "dataset"),
+            ("Readiness", readiness, "readiness"),
             ("Chunks", str(self.chunks), "chunk"),
             ("Flashcards", str(self.flashcards), "flashcard"),
             ("Quizzes", str(self.quizzes), "quiz"),
@@ -93,6 +102,23 @@ def compute_dashboard_stats(settings: SettingsService | None = None) -> Knowledg
     if count:
         avg_seconds /= count
 
+    datasets_count = 0
+    avg_readiness = 0.0
+    try:
+        from src.datasets.statistics.dataset_stats import compute_dataset_statistics
+        from src.datasets.registry.dataset_registry import get_dataset_registry
+
+        reg = get_dataset_registry()
+        dstats = compute_dataset_statistics(
+            reg.knowledge_datasets,
+            reg.chunk_datasets,
+            reg.knowledge_index,
+        )
+        datasets_count = dstats.total_datasets
+        avg_readiness = dstats.avg_readiness_score
+    except Exception:
+        pass
+
     return KnowledgeDashboardStats(
         documents=lib_stats.documents,
         chunks=lib_stats.chunks,
@@ -102,6 +128,8 @@ def compute_dashboard_stats(settings: SettingsService | None = None) -> Knowledg
         relations=int(gstats.get("total_edges", 0)),
         workspaces=lib_stats.workspaces,
         collections=lib_stats.collections,
+        datasets=datasets_count,
+        avg_readiness_score=avg_readiness,
         cache_hits=cache_hits,
         cache_total=cache_total,
         avg_processing_seconds=avg_seconds,
