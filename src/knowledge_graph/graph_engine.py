@@ -240,3 +240,10 @@ class GraphEngine:
         exporter = GraphExporter(self)
         path = exporter.write()
         return str(path)
+
+    def export_knowledge_report(self) -> str:
+        from src.knowledge_graph.exporters.knowledge_report_exporter import KnowledgeReportExporter
+
+        exporter = KnowledgeReportExporter(self)
+        path = exporter.write()
+        return str(path)
