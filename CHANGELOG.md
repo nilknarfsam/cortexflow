@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.4.0] - 2026-05-28
+
+### Added
+
+- **Semantic Intelligence Engine** em `src/semantic/`.
+- **Detector de referências bíblicas** com livro, capítulo, versículo e referência completa.
+- **Highlight Engine** — frases marcantes por heurísticas locais.
+- **Índice automático** baseado em títulos, timestamps e blocos semânticos.
+- **Timestamp Intelligence** — parser, normalizador e formatter Markdown.
+- **Topic Extractor** — tópicos e tags automáticos na metadata YAML.
+- **Chunking semântico avançado** com IDs únicos, relação pai/filho e metadata RAG-ready.
+- Pipeline **RAW → CLEAN → AI_READY → SEMANTIC → NOTEBOOKLM**.
+- Preview UI com badge **Semantic Ready** e contadores semânticos.
+- Histórico enriquecido: referências, highlights, chunks e tópicos detectados.
+
+### Changed
+
+- `NotebookLMExporter` integra camada semântica antes da exportação final.
+- `TranscriptionJob` armazena `semantic_metadata` por item processado.
+
 ## [2.3.0] - 2026-05-28
 
 ### Added

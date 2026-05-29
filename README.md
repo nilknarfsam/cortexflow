@@ -22,9 +22,8 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 * **Histórico:** transcrições e sessões parciais em `data/historico_transcricoes.json`
 * **Log técnico:** `data/logs/app.log` (erros e eventos da fila)
 * **Design System:** tokens visuais premium em `src/ui/design/`
-* **Exportação AI-ready:** modos Raw, Clean, AI Ready e NotebookLM
-* **Templates semânticos:** genérico, sermão, podcast, aula
-* **Histórico enriquecido:** export_mode, template, pipeline_stage
+* **Pipeline AI-ready:** modos Raw, Clean, AI Ready e NotebookLM
+* **Semantic Intelligence:** referências, highlights, tópicos, índice e chunking
 
 ---
 
@@ -33,6 +32,12 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 ```
 app.py
 src/
+  semantic/                    # Semantic Intelligence Engine
+    references/
+    highlights/
+    indexing/
+    timestamps/
+    topics/
   ai_ready/                    # Pipeline AI-ready
     metadata/                  # YAML frontmatter
     templates/                 # Sermão, podcast, aula, genérico
@@ -186,7 +191,7 @@ O CortexFlow transforma conteúdo bruto em **conhecimento estruturado** pronto p
 ### Pipeline de exportação
 
 ```
-RAW → CLEAN → AI_READY → NOTEBOOKLM
+RAW → CLEAN → AI_READY → SEMANTIC → NOTEBOOKLM
 ```
 
 | Modo | Descrição |
@@ -232,6 +237,43 @@ Campos ausentes são omitidos automaticamente.
 3. Processe a fila e importe o `.md` gerado no NotebookLM.
 
 Todo o processamento é **local e determinístico** — sem APIs externas.
+
+---
+
+## Semantic Intelligence Engine
+
+A camada semântica do CortexFlow (`src/semantic/`) transforma texto estruturado em **conhecimento navegável** — 100% local, sem APIs externas.
+
+### Capacidades
+
+| Módulo | Função |
+|--------|--------|
+| **Referências bíblicas** | Detecta João 11:25, Romanos 8:28, Salmos 91, etc. |
+| **Highlights** | Extrai frases marcantes por heurísticas de impacto |
+| **Tópicos** | Identifica fé, graça, salvação, ressurreição, etc. |
+| **Índice automático** | Gera `# Índice` a partir de títulos e timestamps |
+| **Timestamps** | Formata `## [00:14:22] Título do segmento` |
+| **Chunking semântico** | Prepara blocos RAG-ready com IDs, tópicos e relação pai/filho |
+
+### Pipeline semântico
+
+Ativo automaticamente no modo **NotebookLM**. O preview exibe badge **Semantic Ready** com contagem de referências, highlights, chunks e tópicos detectados.
+
+### Preparação RAG
+
+Cada chunk exporta estrutura:
+
+```json
+{
+  "chunk_id": "chunk-a1b2c3d4",
+  "title": "O chamado de Lázaro",
+  "start_timestamp": "00:12:14",
+  "topics": ["fé", "ressurreição"],
+  "content": "..."
+}
+```
+
+Embeddings e busca vetorial virão em sprints futuras.
 
 ---
 
