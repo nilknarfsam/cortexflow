@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import traceback
 from datetime import datetime
 from typing import Optional
 
@@ -161,6 +162,12 @@ class JobDetailsPanel(ctk.CTkFrame):
         return name[: max_len - 1] + "…"
 
     def show_job(self, job: Optional[TranscriptionJob]) -> None:
+        try:
+            self._show_job_impl(job)
+        except Exception:
+            traceback.print_exc()
+
+    def _show_job_impl(self, job: Optional[TranscriptionJob]) -> None:
         colors = self.theme.colors()
         if not job:
             for lbl in self._fields.values():

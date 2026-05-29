@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import traceback
 from typing import Callable, Optional
 
 import customtkinter as ctk
@@ -54,19 +55,29 @@ class QueuePanel(ctk.CTkFrame):
 
         self._build_queue_card()
         self._build_details()
-        self.refresh()
+        self._safe(self.refresh)
+
+    @staticmethod
+    def _safe(fn: Callable[[], None]) -> None:
+        try:
+            fn()
+        except Exception:
+            traceback.print_exc()
 
     def refresh_theme(self) -> None:
-        colors = self.theme.colors()
-        self.table_header.configure(fg_color=colors["table_header"])
-        self.queue_card.configure(
-            fg_color=colors["surface_elevated"],
-            border_color=colors["border"],
-        )
-        self.drop_hint.configure(text_color=colors["text_muted"])
-        self.details_panel.refresh_theme()
-        self.btn_view_result.configure(**self.theme.ghost_button_kwargs())
-        self.refresh()
+        def _do() -> None:
+            colors = self.theme.colors()
+            self.table_header.configure(fg_color=colors["table_header"])
+            self.queue_card.configure(
+                fg_color=colors["surface_elevated"],
+                border_color=colors["border"],
+            )
+            self.drop_hint.configure(text_color=colors["text_muted"])
+            self.details_panel.refresh_theme()
+            self.btn_view_result.configure(**self.theme.ghost_button_kwargs())
+            self.refresh()
+
+        self._safe(_do)
 
     def set_queue_restored(self, restored: bool) -> None:
         self._queue_restored = restored
@@ -147,9 +158,11 @@ class QueuePanel(ctk.CTkFrame):
         self.btn_view_result.pack(side="left")
 
     def update_progress(self, value: float, stats: QueueStats) -> None:
-        self._update_view_button()
+        self._safe(self._update_view_button)
 
     def _update_view_button(self) -> None:
+        if not self.winfo_exists():
+            return
         job = self.queue.selected_job
         can_view = bool(
             job
@@ -221,22 +234,27 @@ class QueuePanel(ctk.CTkFrame):
             self._on_status(f"Cache limpo ({items} entrada(s) removidas).")
 
     def refresh(self) -> None:
-        for widget in self.scroll.winfo_children():
-            widget.destroy()
-        self._row_widgets.clear()
+        def _do() -> None:
+            if not self.winfo_exists():
+                return
+            for widget in self.scroll.winfo_children():
+                widget.destroy()
+            self._row_widgets.clear()
 
-        has_jobs = bool(self.queue.jobs)
-        if has_jobs:
-            self.empty_state.pack_forget()
-            self.scroll.pack(fill="both", expand=True)
-            for job in self.queue.jobs:
-                self._create_row(job)
-        else:
-            self.scroll.pack_forget()
-            self.empty_state.pack(fill="both", expand=True)
+            has_jobs = bool(self.queue.jobs)
+            if has_jobs:
+                self.empty_state.pack_forget()
+                self.scroll.pack(fill="both", expand=True)
+                for job in self.queue.jobs:
+                    self._create_row(job)
+            else:
+                self.scroll.pack_forget()
+                self.empty_state.pack(fill="both", expand=True)
 
-        self._update_view_button()
-        self.details_panel.show_job(self.queue.selected_job)
+            self._update_view_button()
+            self.details_panel.show_job(self.queue.selected_job)
+
+        self._safe(_do)
 
     def _status_key(self, status: JobStatus) -> str:
         return {
@@ -354,9 +372,12 @@ class QueuePanel(ctk.CTkFrame):
                 row.configure(fg_color=colors["card_bg"], border_width=0)
 
     def update_job(self, job: TranscriptionJob) -> None:
-        self.refresh()
-        if self.queue.selected_job and self.queue.selected_job.id == job.id:
-            self.details_panel.show_job(job)
-            self._update_view_button()
-            if self.on_selection_change:
-                self.on_selection_change(job)
+        def _do() -> None:
+            self.refresh()
+            if self.queue.selected_job and self.queue.selected_job.id == job.id:
+                self.details_panel.show_job(job)
+                self._update_view_button()
+                if self.on_selection_change:
+                    self.on_selection_change(job)
+
+        self._safe(_do)

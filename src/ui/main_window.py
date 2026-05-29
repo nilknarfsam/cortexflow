@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tkinter.filedialog as fd
 import tkinter.messagebox as mb
+import traceback
 from typing import Callable
 
 import customtkinter as ctk
@@ -60,6 +61,11 @@ class MainWindow:
             self.settings,
             on_status=self._set_status,
         )
+
+        self._build_layout()
+        self._setup_dnd()
+        self._setup_shortcuts()
+
         self.settings_modal = SettingsModal(
             self.root,
             self.settings,
@@ -70,9 +76,6 @@ class MainWindow:
             on_clear_cache=lambda: self._queue_maintenance(self.queue_panel.clear_cache),
         )
 
-        self._build_layout()
-        self._setup_dnd()
-        self._setup_shortcuts()
         self._try_queue_recovery()
 
     def _apply_root_background(self) -> None:
@@ -254,29 +257,61 @@ class MainWindow:
             self._set_status("Arquivo não encontrado no drag & drop.")
 
     def add_files_dialog(self) -> None:
-        paths = list(
-            fd.askopenfilenames(title="Escolha arquivos para processar", filetypes=FILE_DIALOG_TYPES)
-        )
-        if paths:
-            self._add_paths(list(paths))
+        """Abre o seletor após o handler do botão retornar (evita UI congelada)."""
+        self.root.after(1, self._open_files_dialog)
+
+    def _open_files_dialog(self) -> None:
+        try:
+            self.root.update_idletasks()
+            paths = list(
+                fd.askopenfilenames(
+                    parent=self.root,
+                    title="Escolha arquivos para processar",
+                    filetypes=FILE_DIALOG_TYPES,
+                )
+            )
+            if paths:
+                self._add_paths(list(paths))
+        except Exception:
+            traceback.print_exc()
+            self._set_status("Erro ao abrir seletor de arquivos.")
 
     def add_folder_dialog(self) -> None:
-        folder = fd.askdirectory(title="Escolha uma pasta com arquivos para processar")
-        if not folder:
-            return
-        paths = collect_supported_files(folder)
-        if not paths:
-            self._set_status("Nenhum arquivo suportado encontrado na pasta.")
-            return
-        self._add_paths(paths)
+        self.root.after(1, self._open_folder_dialog)
+
+    def _open_folder_dialog(self) -> None:
+        try:
+            self.root.update_idletasks()
+            folder = fd.askdirectory(
+                parent=self.root,
+                title="Escolha uma pasta com arquivos para processar",
+            )
+            if not folder:
+                return
+            paths = collect_supported_files(folder)
+            if not paths:
+                self._set_status("Nenhum arquivo suportado encontrado na pasta.")
+                return
+            self._add_paths(paths)
+        except Exception:
+            traceback.print_exc()
+            self._set_status("Erro ao abrir seletor de pasta.")
 
     def _add_paths(self, paths: list[str]) -> None:
-        added = self.queue_manager.add_files(paths)
-        self.queue_panel.refresh()
-        if added:
-            self._set_status(f"{len(added)} arquivo(s) na fila.")
-            self.queue_manager.select_job(added[-1].id)
-            self._on_job_selected(self.queue_manager.selected_job)
+        try:
+            added = self.queue_manager.add_files(paths)
+            self.queue_panel.refresh()
+            if added:
+                self._set_status(f"{len(added)} arquivo(s) na fila.")
+                self.queue_manager.select_job(added[-1].id)
+                self._on_job_selected(self.queue_manager.selected_job)
+            self._update_progress(
+                self.queue_manager.get_overall_progress(),
+                self.queue_manager.stats,
+            )
+        except Exception:
+            traceback.print_exc()
+            self._set_status("Erro ao adicionar arquivos à fila.")
 
     def _on_job_selected(self, job: TranscriptionJob | None) -> None:
         pass
@@ -345,26 +380,39 @@ class MainWindow:
         self.queue_panel.refresh()
 
     def _on_job_updated(self, job: TranscriptionJob) -> None:
-        self.queue_panel.update_job(job)
-        if job.status == JobStatus.COMPLETED:
-            self.settings_modal.refresh_history()
+        try:
+            self.queue_panel.update_job(job)
+            if job.status == JobStatus.COMPLETED:
+                self.settings_modal.refresh_history()
+            self._update_progress(
+                self.queue_manager.get_overall_progress(),
+                self.queue_manager.stats,
+            )
+        except Exception:
+            traceback.print_exc()
 
     def _on_queue_idle(self) -> None:
-        self._update_progress(
-            self.queue_manager.get_overall_progress(),
-            self.queue_manager.stats,
-        )
-        self.settings_modal.refresh_history()
+        try:
+            self._update_progress(
+                self.queue_manager.get_overall_progress(),
+                self.queue_manager.stats,
+            )
+            self.settings_modal.refresh_history()
+        except Exception:
+            traceback.print_exc()
 
     def _update_progress(self, value: float, stats: QueueStats) -> None:
-        self.queue_panel.update_progress(value, stats)
-        if self.status_label is not None:
-            self.status_label.configure(text=self._stats_text(stats))
-        processing = self.queue_manager.is_processing
-        if self.btn_start is not None:
-            self.btn_start.configure(state="disabled" if processing else "normal")
-        if self.btn_cancel is not None:
-            self.btn_cancel.configure(state="normal" if processing else "disabled")
+        try:
+            self.queue_panel.update_progress(value, stats)
+            if self.status_label is not None and self.status_label.winfo_exists():
+                self.status_label.configure(text=self._stats_text(stats))
+            processing = self.queue_manager.is_processing
+            if self.btn_start is not None and self.btn_start.winfo_exists():
+                self.btn_start.configure(state="disabled" if processing else "normal")
+            if self.btn_cancel is not None and self.btn_cancel.winfo_exists():
+                self.btn_cancel.configure(state="normal" if processing else "disabled")
+        except Exception:
+            traceback.print_exc()
 
     def _set_status(self, message: str) -> None:
         self._last_status_message = message

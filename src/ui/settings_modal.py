@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import traceback
 from typing import Callable, Optional
 
 import customtkinter as ctk
@@ -92,12 +93,27 @@ class SettingsModal:
         self._window.bind("<Escape>", lambda _e: self._close())
 
     def refresh_theme(self) -> None:
-        if self._panel is not None:
-            self._panel.refresh_theme()
+        if not self._panel_alive():
+            return
+        try:
+            self._panel.refresh_theme()  # type: ignore[union-attr]
+        except Exception:
+            traceback.print_exc()
 
     def refresh_history(self) -> None:
-        if self._panel is not None:
-            self._panel.refresh_history()
+        if not self._panel_alive():
+            return
+        try:
+            self._panel.refresh_history()  # type: ignore[union-attr]
+        except Exception:
+            traceback.print_exc()
+
+    def _panel_alive(self) -> bool:
+        return (
+            self._panel is not None
+            and self._window is not None
+            and self._window.winfo_exists()
+        )
 
     def _on_theme_change(self, theme: str) -> None:
         if self._window is not None and self._window.winfo_exists():
@@ -114,3 +130,4 @@ class SettingsModal:
             self._window.grab_release()
             self._window.destroy()
         self._window = None
+        self._panel = None
