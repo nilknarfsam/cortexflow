@@ -54,8 +54,8 @@ class MainWindow:
 
         self.root = TkinterDnD.Tk()
         self.root.title(f"{APP_NAME} {APP_VERSION}")
-        self.root.geometry("1140x740")
-        self.root.minsize(920, 620)
+        self.root.geometry("1280x740")
+        self.root.minsize(1000, 620)
         self._apply_root_background()
 
         self.queue_manager = QueueManager(
@@ -82,7 +82,6 @@ class MainWindow:
     def _build_layout(self) -> None:
         self.root.grid_columnconfigure(1, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=0)
 
         self.sidebar = BrandSidebar(
             self.root,
@@ -90,11 +89,11 @@ class MainWindow:
             width=Layout.SIDEBAR_WIDTH,
         )
         self.sidebar.grid(
-            row=0, column=0, rowspan=2, sticky="nsew", padx=(Layout.LG, Layout.SM), pady=Layout.LG
+            row=0, column=0, sticky="nsew", padx=(Layout.MD, Layout.SM), pady=Layout.LG
         )
 
         center = ctk.CTkFrame(self.root, fg_color="transparent")
-        center.grid(row=0, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=(Layout.LG, Layout.SM))
+        center.grid(row=0, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=Layout.LG)
         center.grid_columnconfigure(0, weight=1)
         center.grid_rowconfigure(0, weight=1)
         center.grid_rowconfigure(1, weight=0)
@@ -114,7 +113,8 @@ class MainWindow:
             self.main_tabs.add(name)
 
         transcription_tab = self.main_tabs.tab("Transcrição")
-        transcription_tab.grid_columnconfigure(0, weight=1)
+        transcription_tab.grid_columnconfigure(0, weight=3)
+        transcription_tab.grid_columnconfigure(1, weight=2)
         transcription_tab.grid_rowconfigure(0, weight=1)
 
         self.queue_panel = QueuePanel(
@@ -123,7 +123,12 @@ class MainWindow:
             self.theme,
             on_selection_change=self._on_job_selected,
         )
-        self.queue_panel.grid(row=0, column=0, sticky="nsew")
+        self.queue_panel.grid(row=0, column=0, sticky="nsew", padx=(0, Layout.SM))
+
+        self.result_panel = ResultPanel(
+            transcription_tab, self.theme, self.settings, on_status=self._set_status
+        )
+        self.result_panel.grid(row=0, column=1, sticky="nsew")
         self.queue_panel.set_add_files_handler(self.add_files_dialog)
         self.queue_panel.set_status_handler(self._set_status)
 
@@ -201,11 +206,6 @@ class MainWindow:
             on_status=self._set_status,
         )
         self.dataset_panel.grid(row=0, column=0, sticky="nsew")
-
-        self.result_panel = ResultPanel(self.root, self.theme, self.settings, on_status=self._set_status)
-        self.result_panel.grid(
-            row=1, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=(0, Layout.LG)
-        )
 
         self._set_status(self._last_status_message)
 
