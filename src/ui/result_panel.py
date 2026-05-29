@@ -79,6 +79,19 @@ class ResultPanel(ctk.CTkFrame):
         self.semantic_badge.pack(side="left", padx=(Layout.SM, 0))
         self.semantic_badge.pack_forget()
 
+        self.study_badge = ctk.CTkLabel(
+            title_row,
+            text="Study Ready",
+            font=badge(),
+            text_color="#FFFFFF",
+            fg_color=colors["border"],
+            corner_radius=6,
+            padx=8,
+            pady=2,
+        )
+        self.study_badge.pack(side="left", padx=(Layout.XS, 0))
+        self.study_badge.pack_forget()
+
         self.meta_label = ctk.CTkLabel(
             self,
             text="Selecione um item da fila para visualizar.",
@@ -177,6 +190,7 @@ class ResultPanel(ctk.CTkFrame):
         self.btn_load_full.pack_forget()
         self.preview_info.configure(text="")
         self.semantic_badge.pack_forget()
+        self.study_badge.pack_forget()
         self.semantic_label.configure(text="")
 
         if not job:
@@ -217,6 +231,7 @@ class ResultPanel(ctk.CTkFrame):
         if job.status == JobStatus.COMPLETED:
             meta = f"{job.file_name} — salvo em: {job.output_path or '—'}"
             self._update_semantic_preview(job)
+            self._update_study_preview(job)
             self._set_text_content(job.result_text or "(vazio)", full_text=job.result_text, meta=meta)
             self._set_export_enabled(bool((job.result_text or "").strip()))
             return
@@ -227,6 +242,24 @@ class ResultPanel(ctk.CTkFrame):
             meta=f"{job.file_name} — {job.status.value}",
         )
         self._set_export_enabled(False)
+
+    def _update_study_preview(self, job: TranscriptionJob) -> None:
+        sm = job.study_metadata or {}
+        if not sm.get("study_ready"):
+            self.study_badge.pack_forget()
+            return
+        from src.ui.design.colors import SEMANTIC
+
+        colors = self.theme.colors()
+        self.study_badge.configure(fg_color=SEMANTIC["success"])
+        self.study_badge.pack(side="left", padx=(Layout.XS, 0))
+        extra = (
+            f"  ·  Study: {sm.get('flashcards_count', 0)} flashcards, "
+            f"{sm.get('quizzes_count', 0)} quizzes, {sm.get('difficulty', '—')}"
+        )
+        current = self.semantic_label.cget("text")
+        if extra.strip() not in (current or ""):
+            self.semantic_label.configure(text=(current or "") + extra)
 
     def _update_semantic_preview(self, job: TranscriptionJob) -> None:
         text = job.result_text or ""

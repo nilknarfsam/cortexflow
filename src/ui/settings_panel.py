@@ -132,7 +132,7 @@ class SettingsPanel(ctk.CTkFrame):
         ctk.CTkLabel(self, text="Modo de exportação", anchor="w", font=body_small()).pack(fill="x", **pad)
         self.export_mode_menu = ctk.CTkOptionMenu(
             self,
-            values=["raw", "clean", "ai_ready", "notebooklm"],
+            values=["raw", "clean", "ai_ready", "notebooklm", "study_mode"],
             command=self._change_export_mode,
             width=220,
         )
@@ -379,6 +379,12 @@ class SettingsPanel(ctk.CTkFrame):
                     line += f" / {item['collection'][:16]}"
                 if item.get("catalog_id"):
                     line += f" · id:{item['catalog_id'][:10]}"
+                if item.get("flashcards_count"):
+                    line += f" · fc:{item['flashcards_count']}"
+                if item.get("quizzes_count"):
+                    line += f" · quiz:{item['quizzes_count']}"
+                if item.get("difficulty"):
+                    line += f" · {item['difficulty']}"
                 if item.get("mensagem"):
                     line += f" — {item['mensagem'][:60]}"
                 self.history_box.insert("end", line + "\n")

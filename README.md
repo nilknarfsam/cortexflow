@@ -27,6 +27,7 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 * **Pipeline AI-ready:** modos Raw, Clean, AI Ready e NotebookLM
 * **Semantic Intelligence:** referências, highlights, tópicos, índice e chunking
 * **Knowledge Library:** workspaces, coleções, catálogo e busca local na aba **Biblioteca**
+* **Study Intelligence:** flashcards, quizzes, revisão rápida e notas (modo `study_mode`)
 
 ---
 
@@ -60,6 +61,14 @@ src/
     search/
     metadata/
     library_engine.py
+  study/                       # Study Intelligence Engine
+    flashcards/
+    quizzes/
+    summaries/
+    revisions/
+    difficulty/
+    notes/
+    study_engine.py
   core/
     transcription_service.py   # Whisper (singleton)
     extraction_service.py      # TXT, PDF, DOCX, XLSX, OCR
@@ -81,6 +90,7 @@ src/
     main_window.py
     queue_panel.py
     library_panel.py
+    study_panel.py
     settings_panel.py
     result_panel.py
 data/
@@ -395,6 +405,63 @@ Frontmatter NotebookLM inclui: `workspace`, `collection`, `category`, `knowledge
 2. Preencha autor, speaker e tags (opcional).
 3. Processe na fila — o catálogo atualiza automaticamente.
 4. Navegue e pesquise na aba **Biblioteca**; abra o Markdown exportado.
+
+---
+
+## Study Intelligence Engine
+
+Transforma conhecimento organizado em **aprendizado estruturado** — 100% local.
+
+### Study Mode
+
+Novo modo de exportação: **study_mode**. Pipeline:
+
+```
+RAW → CACHE CHECK → CLEAN → AI_READY → SEMANTIC → STUDY → NOTEBOOKLM
+```
+
+### Flashcards
+
+Gerados a partir de chunks, highlights, tópicos e referências. Estrutura JSON:
+
+```json
+{
+  "question": "...",
+  "answer": "...",
+  "topic": "...",
+  "difficulty": "básico"
+}
+```
+
+Arquivo: `{nome}_flashcards.json`
+
+### Quiz Generator
+
+Tipos: múltipla escolha, verdadeiro/falso, perguntas abertas e revisão rápida.
+
+Arquivo: `{nome}_quizzes.json`
+
+### Revisão Inteligente
+
+Seções automáticas no Markdown e em `{nome}_quick_review.md`:
+
+* **Revisão Rápida**
+* **Conceitos Principais**
+* **Perguntas para Revisão**
+* **Aplicações Práticas**
+* **Reflexões**
+
+Notas completas: `{nome}_study_notes.md`
+
+### Dificuldade
+
+Classificação **básico**, **intermediário** ou **avançado** (tamanho, densidade, tópicos, referências). Campo `difficulty` no YAML.
+
+### UI
+
+* Aba **Estudo** — preview de flashcards, quizzes e revisão rápida
+* Badge **Study Ready** no painel de resultado
+* Histórico: `flashcards_count`, `quizzes_count`, `difficulty`, `study_exports`
 
 ---
 

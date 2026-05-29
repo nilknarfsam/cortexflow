@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.7.0] - 2026-05-28
+
+### Added
+
+- **Study Intelligence Engine** em `src/study/`.
+- **Flashcard Generator** — chunks, highlights, tópicos e referências.
+- **Quiz Generator** — múltipla escolha, V/F, abertas e revisão rápida.
+- **Study Summary** — revisão rápida, conceitos e pontos importantes.
+- **Difficulty Engine** — básico / intermediário / avançado no YAML.
+- **Study Notes** — aplicações, reflexões e perguntas para revisão.
+- Modo **study_mode** e estágio **STUDY** no pipeline.
+- Exportações: `*_flashcards.json`, `*_quizzes.json`, `*_study_notes.md`, `*_quick_review.md`.
+- Aba **Estudo** e badge **Study Ready** na UI.
+
+### Changed
+
+- Pipeline: `SEMANTIC → STUDY → NOTEBOOKLM` quando `study_mode` está ativo.
+- Histórico enriquecido com métricas educacionais.
+
 ## [2.6.0] - 2026-05-28
 
 ### Added

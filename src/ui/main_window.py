@@ -16,6 +16,7 @@ from src.ui.design.fonts import APP_NAME, APP_TAGLINE, APP_VERSION, badge, brand
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
 from src.ui.library_panel import LibraryPanel
+from src.ui.study_panel import StudyPanel
 from src.ui.queue_panel import QueuePanel
 from src.ui.result_panel import ResultPanel
 from src.ui.settings_panel import SettingsPanel
@@ -87,6 +88,7 @@ class MainWindow:
         self.main_tabs.grid(row=0, column=0, sticky="nsew")
         self.main_tabs.add("Pipeline")
         self.main_tabs.add("Biblioteca")
+        self.main_tabs.add("Estudo")
 
         pipeline_tab = self.main_tabs.tab("Pipeline")
         pipeline_tab.grid_columnconfigure(0, weight=1)
@@ -113,6 +115,17 @@ class MainWindow:
             on_status=self._set_status,
         )
         self.library_panel.grid(row=0, column=0, sticky="nsew")
+
+        study_tab = self.main_tabs.tab("Estudo")
+        study_tab.grid_columnconfigure(0, weight=1)
+        study_tab.grid_rowconfigure(0, weight=1)
+
+        self.study_panel = StudyPanel(
+            study_tab,
+            self.theme,
+            on_status=self._set_status,
+        )
+        self.study_panel.grid(row=0, column=0, sticky="nsew")
 
         self.status_label = ctk.CTkLabel(
             center,
@@ -211,6 +224,7 @@ class MainWindow:
 
     def _on_job_selected(self, job: TranscriptionJob | None) -> None:
         self.result_panel.show_job(job)
+        self.study_panel.show_job(job)
 
     def _on_settings_change(self) -> None:
         for job in self.queue_manager.jobs:
@@ -230,6 +244,7 @@ class MainWindow:
         self.settings_panel.refresh_theme()
         self.queue_panel.refresh_theme()
         self.library_panel.refresh_theme()
+        self.study_panel.refresh_theme()
         self.result_panel.refresh_theme()
         self._set_status(f"Tema alterado para {theme}")
 
@@ -278,6 +293,7 @@ class MainWindow:
         selected = self.queue_manager.selected_job
         if selected and selected.id == job.id:
             self.result_panel.show_job(job)
+            self.study_panel.show_job(job)
         if job.status == JobStatus.COMPLETED:
             self.settings_panel.refresh_history()
             self.library_panel.refresh()
