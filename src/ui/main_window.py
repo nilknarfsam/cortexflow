@@ -53,6 +53,9 @@ class MainWindow:
             on_queue_recovered=self._on_queue_recovered_threadsafe,
         )
 
+        self._last_status_message = "Pronto."
+        self.status_label = None
+
         self._build_layout()
         self._setup_dnd()
         self._setup_shortcuts()
@@ -86,6 +89,15 @@ class MainWindow:
         center.grid_columnconfigure(0, weight=1)
         center.grid_rowconfigure(0, weight=1)
         center.grid_rowconfigure(1, weight=0)
+
+        self.status_label = ctk.CTkLabel(
+            center,
+            text=self._last_status_message,
+            font=brand_subtitle(),
+            text_color=self.theme.colors()["accent"],
+            anchor="w",
+        )
+        self.status_label.grid(row=1, column=0, sticky="ew", pady=(Layout.SM, 0))
 
         self.main_tabs = ctk.CTkTabview(center, fg_color="transparent")
         self.main_tabs.grid(row=0, column=0, sticky="nsew")
@@ -172,19 +184,12 @@ class MainWindow:
         )
         self.dataset_panel.grid(row=0, column=0, sticky="nsew")
 
-        self.status_label = ctk.CTkLabel(
-            center,
-            text="Pronto.",
-            font=brand_subtitle(),
-            text_color=self.theme.colors()["accent"],
-            anchor="w",
-        )
-        self.status_label.grid(row=1, column=0, sticky="ew", pady=(Layout.SM, 0))
-
         self.result_panel = ResultPanel(self.root, self.theme, self.settings, on_status=self._set_status)
         self.result_panel.grid(
             row=2, column=1, sticky="nsew", padx=(Layout.SM, Layout.LG), pady=(0, Layout.LG)
         )
+
+        self._set_status(self._last_status_message)
 
     def _build_header(self) -> None:
         colors = self.theme.colors()
@@ -286,7 +291,8 @@ class MainWindow:
         self.theme.apply(theme)
         colors = self.theme.colors()
         self._apply_root_background()
-        self.status_label.configure(text_color=colors["accent"])
+        if self.status_label is not None:
+            self.status_label.configure(text_color=colors["accent"])
         self.settings_panel.refresh_theme()
         self.queue_panel.refresh_theme()
         self.workspace_panel.refresh_theme()
@@ -395,7 +401,10 @@ class MainWindow:
         self.graph_panel.show_related(catalog_id, title)
 
     def _set_status(self, message: str) -> None:
-        self.status_label.configure(text=message)
+        self._last_status_message = message
+
+        if hasattr(self, "status_label") and self.status_label is not None:
+            self.status_label.configure(text=message)
 
     def run(self) -> None:
         self.root.mainloop()
