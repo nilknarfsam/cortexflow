@@ -8,9 +8,27 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 
 ---
 
+## UX 3.0.3 — Modo Transcritor Focado
+
+O CortexFlow **3.0.3** prioriza transcrição e exportação. Módulos avançados (biblioteca, grafo, estudo, datasets) permanecem no código-fonte para uso futuro, mas **não aparecem na interface** nem são carregados ao abrir o app.
+
+### Tela principal
+
+* Cabeçalho: **CortexFlow** + subtítulo de transcrição
+* Fila premium, preview do resultado, drag and drop
+* Botão **INICIAR TRANSCRIÇÃO** em destaque
+* Sidebar: **Transcrição** | **Configurações** (`Ctrl+,` · `Esc` para voltar)
+
+### Configurações
+
+* Essenciais: tema, idioma, formato, modo de exportação, tipo de conteúdo, pasta de saída
+* **Configurações avançadas** (recolhidas): workspace, coleção, autor, speaker, tags, tipo de conhecimento
+
+---
+
 ## UX 3.0.2 — Aba Transcrição
 
-A aba **Transcrição** é a tela principal do CortexFlow (primeira aba ao abrir o app).
+A tela de transcrição concentra fila, preview e ações principais.
 
 ### Nova fila premium
 
@@ -22,7 +40,7 @@ A aba **Transcrição** é a tela principal do CortexFlow (primeira aba ao abrir
 * **Preview** do resultado como painel secundário (exportar TXT, JSON, MD)
 * **Drag and drop** em toda a janela e na fila
 
-Preferências de tema, idioma e biblioteca ficam na aba **Configurações**. Sidebar: marca CortexFlow, versão e slogan.
+Preferências na tela **Configurações** (sidebar). Histórico e cache na fila.
 
 ---
 

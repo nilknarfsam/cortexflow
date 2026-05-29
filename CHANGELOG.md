@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.0.3] - 2026-05-28
+
+### UX 3.0.3 — Modo Transcritor Focado
+
+- Interface simplificada: **sem abas avançadas** (Conhecimento, Biblioteca, Grafo, Estudo, Datasets removidas da UI).
+- Tela principal dedicada à **transcrição**; **Configurações** via botão na sidebar e atalho `Ctrl+,`.
+- Boot mais leve: painéis avançados **não são instanciados** na abertura (backend preservado em `src/`).
+- Cabeçalho com subtítulo: transcrição inteligente de áudio, vídeo e documentos.
+- Botão **INICIAR TRANSCRIÇÃO** em destaque na fila.
+- Configurações com seção **avançada** recolhível (workspace, coleção, autor, speaker, tags, tipo de conhecimento).
+- Versão visual **CortexFlow 3.0.3**.
+
 ## [3.0.2] - 2026-05-28
 
 ### UX 3.0.2 — Aba Transcrição
