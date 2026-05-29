@@ -45,11 +45,13 @@ class MainWindow:
             on_queue_idle=self._on_queue_idle_threadsafe,
             on_status_message=self._on_status_threadsafe,
             on_progress=self._on_progress_threadsafe,
+            on_queue_recovered=self._on_queue_recovered_threadsafe,
         )
 
         self._build_layout()
         self._setup_dnd()
         self._setup_shortcuts()
+        self._try_queue_recovery()
 
     def _apply_root_background(self) -> None:
         """TkinterDnD.Tk() usa bg nativo — fg_color é exclusivo do CTk."""
@@ -219,6 +221,34 @@ class MainWindow:
 
     def _on_progress_threadsafe(self, value: float, stats: QueueStats) -> None:
         self.root.after(0, lambda v=value, s=stats: self.queue_panel.update_progress(v, s))
+
+    def _on_queue_recovered_threadsafe(self, meta: dict) -> None:
+        self.root.after(0, lambda m=meta: self._on_queue_recovered(m))
+
+    def _try_queue_recovery(self) -> None:
+        if self.queue_manager.try_recover_queue(auto=True):
+            self.queue_panel.refresh()
+            self.queue_panel.set_queue_restored(True)
+            pending = sum(
+                1 for j in self.queue_manager.jobs
+                if j.status in (JobStatus.WAITING, JobStatus.ERROR)
+            )
+            reset = meta.get("processing_reset", 0) if (meta := self.queue_manager.recovery_meta) else 0
+            msg = f"Fila restaurada ({len(self.queue_manager.jobs)} item(ns))."
+            if reset:
+                msg += f" {reset} em processamento voltaram a aguardar."
+            if pending:
+                msg += " Clique em Iniciar Fila para continuar."
+            self._set_status(msg)
+            if self.queue_manager.jobs:
+                self.queue_manager.select_job(self.queue_manager.jobs[0].id)
+                self._on_job_selected(self.queue_manager.selected_job)
+        self.queue_panel.refresh_cache_stats()
+
+    def _on_queue_recovered(self, meta: dict) -> None:
+        self.queue_panel.set_queue_restored(bool(meta.get("restored")))
+        self.queue_panel.refresh()
+        self.queue_panel.refresh_cache_stats()
 
     def _on_job_updated(self, job: TranscriptionJob) -> None:
         self.queue_panel.update_job(job)

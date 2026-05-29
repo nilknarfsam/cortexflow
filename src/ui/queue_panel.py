@@ -9,6 +9,7 @@ import customtkinter as ctk
 
 from src.core.queue_manager import QueueManager, QueueStats
 from src.models.transcription_job import JobStatus, TranscriptionJob
+from src.ui.design.colors import SEMANTIC
 from src.ui.design.fonts import body_small, caption, panel_title
 from src.ui.design.spacing import Layout
 from src.ui.design.theme_manager import ThemeManager
@@ -32,12 +33,14 @@ class QueuePanel(ctk.CTkFrame):
         self._apply_frame_style()
         self._build_header()
         self._build_stats()
+        self._build_intel_row()
         self._build_table_header()
         self._build_scroll()
         self._build_actions()
 
         self._on_add_files: Optional[Callable[[], None]] = None
         self._on_status: Optional[Callable[[str], None]] = None
+        self._queue_restored = False
         self.update_progress(0.0, self.queue.stats)
 
     def _apply_frame_style(self) -> None:
@@ -48,8 +51,54 @@ class QueuePanel(ctk.CTkFrame):
         colors = self.theme.colors()
         self.drop_hint.configure(text_color=colors["text_muted"])
         self.stats_label.configure(text_color=colors["text_secondary"])
+        self.cache_badge.configure(text_color=colors["text_muted"])
+        self.queue_badge.configure(text_color=colors["accent"])
+        self.cache_stats_label.configure(text_color=colors["text_secondary"])
         self.table_header.configure(fg_color=colors["table_header"])
         self.refresh()
+        self.refresh_cache_stats()
+
+    def set_queue_restored(self, restored: bool) -> None:
+        self._queue_restored = restored
+        colors = self.theme.colors()
+        if restored:
+            self.queue_badge.configure(text="Queue Restored", text_color=colors["accent"])
+        else:
+            self.queue_badge.configure(text="")
+
+    def refresh_cache_stats(self) -> None:
+        stats = self.queue.cache_engine.stats()
+        count = int(stats.get("item_count", 0))
+        size_b = int(stats.get("disk_bytes", 0))
+        self.cache_stats_label.configure(
+            text=f"Cache {count} itens · {self._format_bytes(size_b)}"
+        )
+
+    @staticmethod
+    def _format_bytes(n: int) -> str:
+        if n < 1024:
+            return f"{n} B"
+        if n < 1024 * 1024:
+            return f"{n / 1024:.1f} KB"
+        return f"{n / (1024 * 1024):.1f} MB"
+
+    def _update_cache_badge(self) -> None:
+        colors = self.theme.colors()
+        status = self.queue.last_cache_status
+        job = self.queue.selected_job
+        if job and job.cache_status:
+            status = job.cache_status
+        if status == "hit":
+            self.cache_badge.configure(text="Cache HIT", text_color=SEMANTIC["success"])
+        elif status in ("miss", ""):
+            if status == "miss":
+                self.cache_badge.configure(text="Cache MISS", text_color=SEMANTIC["warning"])
+            else:
+                self.cache_badge.configure(text="Cache: —", text_color=colors["text_muted"])
+        elif status == "partial":
+            self.cache_badge.configure(text="Cache PARTIAL", text_color=colors["accent"])
+        else:
+            self.cache_badge.configure(text=f"Cache: {status}", text_color=colors["text_muted"])
 
     def _build_header(self) -> None:
         colors = self.theme.colors()
@@ -89,6 +138,38 @@ class QueuePanel(ctk.CTkFrame):
         )
         self.overall_progress.set(0)
         self.overall_progress.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
+
+    def _build_intel_row(self) -> None:
+        colors = self.theme.colors()
+        row = ctk.CTkFrame(self, fg_color="transparent")
+        row.pack(fill="x", padx=Layout.LG, pady=(0, Layout.XS))
+
+        self.cache_badge = ctk.CTkLabel(
+            row,
+            text="Cache: —",
+            font=caption(),
+            text_color=colors["text_muted"],
+            anchor="w",
+        )
+        self.cache_badge.pack(side="left", padx=(0, Layout.MD))
+
+        self.queue_badge = ctk.CTkLabel(
+            row,
+            text="",
+            font=caption(),
+            text_color=colors["accent"],
+            anchor="w",
+        )
+        self.queue_badge.pack(side="left", padx=(0, Layout.MD))
+
+        self.cache_stats_label = ctk.CTkLabel(
+            row,
+            text="Cache 0 itens · 0 B",
+            font=caption(),
+            text_color=colors["text_secondary"],
+            anchor="e",
+        )
+        self.cache_stats_label.pack(side="right")
 
     def _build_table_header(self) -> None:
         colors = self.theme.colors()
@@ -175,6 +256,22 @@ class QueuePanel(ctk.CTkFrame):
             **self.theme.danger_button_kwargs(),
         ).pack(side="left", padx=Layout.XS)
 
+        ctk.CTkButton(
+            actions2,
+            text="Restaurar Última Fila",
+            width=150,
+            command=self._restore_queue,
+            **self.theme.ghost_button_kwargs(),
+        ).pack(side="left", padx=Layout.XS)
+
+        ctk.CTkButton(
+            actions2,
+            text="Limpar Cache",
+            width=110,
+            command=self._clear_cache,
+            **self.theme.warning_button_kwargs(),
+        ).pack(side="left", padx=Layout.XS)
+
     def set_add_files_handler(self, handler: Callable[[], None]) -> None:
         self._on_add_files = handler
 
@@ -237,6 +334,30 @@ class QueuePanel(ctk.CTkFrame):
         self.queue.clear_queue()
         self.refresh()
 
+    def _restore_queue(self) -> None:
+        if self.queue.is_processing:
+            if self._on_status:
+                self._on_status("Aguarde o fim do processamento para restaurar a fila.")
+            return
+        if self.queue.restore_last_queue():
+            self.set_queue_restored(True)
+            self.refresh()
+            if self._on_status:
+                self._on_status("Última fila restaurada.")
+        elif self._on_status:
+            self._on_status("Nenhuma fila salva para restaurar.")
+
+    def _clear_cache(self) -> None:
+        if self.queue.is_processing:
+            if self._on_status:
+                self._on_status("Aguarde o fim do processamento para limpar o cache.")
+            return
+        items, _ = self.queue.clear_cache()
+        self.refresh_cache_stats()
+        self._update_cache_badge()
+        if self._on_status:
+            self._on_status(f"Cache limpo ({items} entrada(s) removidas).")
+
     def refresh(self) -> None:
         for widget in self.scroll.winfo_children():
             widget.destroy()
@@ -246,6 +367,8 @@ class QueuePanel(ctk.CTkFrame):
             self._create_row(job)
 
         self.update_progress(self.queue.get_overall_progress(), self.queue.stats)
+        self._update_cache_badge()
+        self.refresh_cache_stats()
 
     def _status_key(self, status: JobStatus) -> str:
         return {
@@ -318,6 +441,7 @@ class QueuePanel(ctk.CTkFrame):
 
     def update_job(self, job: TranscriptionJob) -> None:
         self.refresh()
+        self._update_cache_badge()
         if self.queue.selected_job and self.queue.selected_job.id == job.id:
             if self.on_selection_change:
                 self.on_selection_change(job)
