@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 import traceback
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
 class JobErrorInfo:
+    """Mensagem amigável, código estável e detalhe técnico para um erro de job."""
     user_message: str
     error_code: str
     technical_detail: str
