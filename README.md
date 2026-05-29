@@ -20,6 +20,8 @@ Transforme conteúdos brutos (áudio, vídeo, documentos, OCR) em Markdown e for
 * **UX:** arrastar & soltar, preview inteligente para textos grandes, tema escuro/claro
 * **Exportação:** TXT, JSON, Markdown (automática e manual)
 * **Histórico:** transcrições e sessões parciais em `data/historico_transcricoes.json`
+* **Fila persistente:** estado da fila em `data/queue_state.json` com recovery automático
+* **Cache inteligente:** SHA256 + `data/cache_registry.json` para evitar reprocessamento
 * **Log técnico:** `data/logs/app.log` (erros e eventos da fila)
 * **Design System:** tokens visuais premium em `src/ui/design/`
 * **Pipeline AI-ready:** modos Raw, Clean, AI Ready e NotebookLM
@@ -46,11 +48,17 @@ src/
     exporters/                 # NotebookLM exporter
     pipeline.py
     stages.py
+  cache/                       # Cache Intelligence Engine
+    hash_manager.py
+    cache_engine.py
+    cache_registry.py
   core/
     transcription_service.py   # Whisper (singleton)
     extraction_service.py      # TXT, PDF, DOCX, XLSX, OCR
     export_service.py
     queue_manager.py
+    persistent_queue.py        # Fila persistente
+    performance_metrics.py     # Métricas de pipeline
     settings_service.py
     log_service.py
     job_errors.py
@@ -69,6 +77,9 @@ src/
 data/
   settings.json
   historico_transcricoes.json
+  queue_state.json
+  cache_registry.json
+  cache/
   logs/app.log
 ```
 
@@ -274,6 +285,62 @@ Cada chunk exporta estrutura:
 ```
 
 Embeddings e busca vetorial virão em sprints futuras.
+
+---
+
+## Persistent Knowledge Queue
+
+A fila do CortexFlow persiste automaticamente em `data/queue_state.json`.
+
+### O que é salvo
+
+* Jobs aguardando, processando, concluídos, cancelados e com erro
+* Progresso por job e checkpoints do pipeline (Whisper, OCR, clean, semantic, notebooklm)
+* Timestamps, modo de exportação e template usados na sessão
+
+### Recovery System
+
+Ao abrir o app:
+
+1. Detecta `queue_state.json` e restaura a fila
+2. Jobs em **processando** voltam para **aguardando** (retomada segura)
+3. Remove jobs corrompidos (arquivo ausente no disco)
+4. Exibe indicador **Queue Restored** na UI
+5. Use **Iniciar Fila** para continuar de onde parou
+
+Botão **Restaurar Última Fila** recarrega manualmente o último snapshot.
+
+---
+
+## Cache Intelligence Engine
+
+Cache local e determinístico em `src/cache/` — sem APIs externas.
+
+### SHA256 fingerprint
+
+Cada arquivo recebe hash SHA256 + tamanho. O fluxo é:
+
+```
+arquivo → SHA256 → verificar cache → reutilizar resultados
+```
+
+### Pipeline com cache
+
+```
+RAW → CACHE CHECK → CLEAN → AI_READY → SEMANTIC → NOTEBOOKLM
+```
+
+Estágios cacheados: transcrição Whisper, OCR, markdown clean, semantic, export NotebookLM e chunks.
+
+Registro em `data/cache_registry.json` com hash, tamanho, nome, data, export mode, estágio e caminhos gerados.
+
+### UI
+
+* **Cache HIT** / **Cache MISS** / **Cache PARTIAL**
+* **Limpar Cache** — remove registry e `data/cache/`
+* Contador de itens e tamanho do cache
+
+O histórico registra `cache_hit`, `recovery_used`, `processing_time` e `reused_pipeline`.
 
 ---
 

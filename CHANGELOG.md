@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.5.0] - 2026-05-28
+
+### Added
+
+- **Persistent Knowledge Queue** — `persistent_queue.py` e `data/queue_state.json`.
+- **Queue Recovery** automático ao iniciar o app; botão **Restaurar Última Fila**.
+- **Auto-save incremental** de checkpoints (Whisper, OCR, semantic, notebooklm).
+- **Cache Intelligence Engine** em `src/cache/` (SHA256, registry, engine).
+- **Cache de pipeline** — whisper, OCR, clean, semantic, notebooklm, chunks.
+- **Performance metrics** — tempos Whisper, OCR, semantic e total no histórico.
+- UI: indicadores Cache HIT/MISS, Queue Restored, **Limpar Cache**, estatísticas de cache.
+
+### Changed
+
+- `QueueManager` integra persistência, cache e métricas sem alterar drag & drop ou exportações.
+- Histórico enriquecido: `cache_hit`, `recovery_used`, `processing_time`, `reused_pipeline`.
+
 ## [2.4.0] - 2026-05-28
 
 ### Added
