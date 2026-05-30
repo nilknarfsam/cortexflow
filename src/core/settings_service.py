@@ -3,11 +3,27 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = PROJECT_ROOT / "data"
+
+def _resolve_project_root() -> Path:
+    """Raiz do app: pasta do .exe (PyInstaller) ou repositório em desenvolvimento."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[2]
+
+
+def _resolve_data_dir() -> Path:
+    """Dados persistentes ao lado do .exe; em dev, ``data/`` na raiz do repo."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "data"
+    return Path(__file__).resolve().parents[2] / "data"
+
+
+PROJECT_ROOT = _resolve_project_root()
+DATA_DIR = _resolve_data_dir()
 SETTINGS_FILE = DATA_DIR / "settings.json"
 HISTORY_FILE = DATA_DIR / "historico_transcricoes.json"
 LEGACY_HISTORY_FILE = PROJECT_ROOT / "historico_transcricoes.json"
