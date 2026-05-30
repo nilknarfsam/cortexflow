@@ -6,7 +6,7 @@ Saída: ``dist/CortexFlow/CortexFlow.exe`` (+ DLLs/libs na mesma pasta).
 Dados do usuário NÃO são empacotados — criados em ``<pasta_do_exe>/data/``
 (ver settings_service.py).
 
-console=True temporário (Fase 3.3) para debug de Whisper/PyTorch no build compilado.
+Release: console=False (sem janela de terminal). Fase 3.3 usou console=True para debug.
 """
 
 from pathlib import Path
@@ -84,7 +84,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

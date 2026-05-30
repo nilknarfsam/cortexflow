@@ -81,9 +81,9 @@
 
 - [x] `app_transcricao.spec` migrado para **one-directory** (`exclude_binaries=True` + bloco `COLLECT`).
 - [x] Saída: `dist/CortexFlow/CortexFlow.exe` (+ `_internal/` com libs/DLLs) — boot mais rápido, sem extração one-file.
-- [x] `console=True` temporário no EXE para capturar erros de Whisper/PyTorch no terminal.
+- [x] `console=True` temporário no EXE para capturar erros de Whisper/PyTorch no terminal (debug).
 - [x] Reforço de `hiddenimports`: `tiktoken`, `torchaudio`, `whisper`, `torch` (lista explícita no Analysis).
-- [ ] Após corrigir transcrição no build: voltar `console=False` para release.
+- [x] **Release:** `console=False` — build final sem janela de terminal.
 
 ### Sprint UX 3.1 — Simplificação Radical da Interface
 
@@ -128,6 +128,7 @@ Registro cronológico (mais recente no topo).
 
 | Data | Tarefa | Resultado |
 |------|--------|-----------|
+| 2026-05-30 | Fase 3.3 — Release onedir (sem console) | `console=False` no spec; rebuild `dist/CortexFlow/`; commit local. |
 | 2026-05-30 | Fase 3.3 — Build one-directory + debug | Spec onedir + `COLLECT`, `console=True`, hiddenimports Whisper; `dist/CortexFlow/`; commit local. |
 | 2026-05-30 | Fase 3.1/3.2 — Build Desktop | `app_transcricao.spec` (CTk + dnd2, sem `data/`); paths congelados em `settings_service`; `dist/CortexFlow.exe`; commits locais. |
 | 2026-05-29 | README profissional 3.0.4 | `README.md` reescrito (features, pré-requisitos, instalação, stack); commit `docs: criar README profissional para o CortexFlow 3.0.4`. |
