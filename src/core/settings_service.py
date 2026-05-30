@@ -26,7 +26,10 @@ PROJECT_ROOT = _resolve_project_root()
 DATA_DIR = _resolve_data_dir()
 SETTINGS_FILE = DATA_DIR / "settings.json"
 HISTORY_FILE = DATA_DIR / "historico_transcricoes.json"
-LEGACY_HISTORY_FILE = PROJECT_ROOT / "historico_transcricoes.json"
+LEGACY_HISTORY_FILES = (
+    PROJECT_ROOT / "historico_transcricoes.json",
+    PROJECT_ROOT / "_archive" / "historico_transcricoes.json",
+)
 
 # Modos cujo pós-processamento (biblioteca, grafo, datasets) exige pipeline de conhecimento.
 EXPORT_MODES_REQUIRING_KNOWLEDGE = frozenset({"notebooklm", "study_mode", "ai_ready"})
@@ -76,8 +79,12 @@ class SettingsService:
         self.load()
 
     def _migrate_legacy_history(self) -> None:
-        if LEGACY_HISTORY_FILE.exists() and not HISTORY_FILE.exists():
-            shutil.copy2(LEGACY_HISTORY_FILE, HISTORY_FILE)
+        if HISTORY_FILE.exists():
+            return
+        for legacy_path in LEGACY_HISTORY_FILES:
+            if legacy_path.exists():
+                shutil.copy2(legacy_path, HISTORY_FILE)
+                return
 
     def load(self) -> None:
         if SETTINGS_FILE.exists():
@@ -85,8 +92,10 @@ class SettingsService:
                 with open(SETTINGS_FILE, encoding="utf-8") as f:
                     loaded = json.load(f)
                 self._apply_loaded_settings(loaded)
-            except (json.JSONDecodeError, OSError):
-                pass
+            except (json.JSONDecodeError, OSError) as exc:
+                from src.core.log_service import get_logger
+
+                get_logger().warning("Falha ao carregar settings.json: %s", exc)
         else:
             self._ensure_features_defaults()
         self._history = self._load_history_file()

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import traceback
 from dataclasses import dataclass
+from urllib.error import URLError
 
 
 @dataclass(frozen=True)
@@ -57,7 +58,29 @@ def classify_job_error(exc: BaseException, file_path: str) -> JobErrorInfo:
             error_code="WHISPER_UNAVAILABLE",
             technical_detail=detail,
         )
+    if isinstance(exc, URLError) or (
+        isinstance(exc, OSError) and "SSL" in str(exc)
+    ):
+        return JobErrorInfo(
+            user_message=(
+                "Falha ao baixar o modelo Whisper (erro SSL/rede). "
+                "Baixe manualmente base.pt para %USERPROFILE%\\.cache\\whisper\\ "
+                "ou verifique antivírus/proxy."
+            ),
+            error_code="WHISPER_DOWNLOAD_FAILED",
+            technical_detail=detail,
+        )
     if isinstance(exc, OSError):
+        winerror = getattr(exc, "winerror", None)
+        if winerror in (3, 206) or "too long" in str(exc).lower() or "nome de arquivo" in str(exc).lower():
+            return JobErrorInfo(
+                user_message=(
+                    f"Caminho muito longo para o Windows: {name}. "
+                    "Use pastas mais curtas ou mova o arquivo para um diretório com caminho menor."
+                ),
+                error_code="PATH_TOO_LONG",
+                technical_detail=detail,
+            )
         return JobErrorInfo(
             user_message=f"Erro de sistema ao acessar: {name}",
             error_code="OS_ERROR",

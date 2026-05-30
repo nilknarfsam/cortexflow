@@ -8,6 +8,7 @@ from typing import Callable, Optional
 from src.cache.cache_engine import CacheEngine, CacheLookupResult
 from src.core.extraction_service import ExtractionService
 from src.core.export_service import ExportService
+from src.core.file_utils import validate_job_paths
 from src.core.job_errors import classify_job_error, format_traceback
 from src.core.log_service import get_logger
 from src.core.performance_metrics import PerformanceMetrics
@@ -96,6 +97,8 @@ class JobProcessor:
         try:
             if not os.path.isfile(job.file_path):
                 raise FileNotFoundError(job.file_path)
+
+            validate_job_paths(job.file_path, job.output_path)
 
             language = self.settings.language
             model_name = self.settings.whisper_model
@@ -682,8 +685,8 @@ class JobProcessor:
                 from src.knowledge_graph import get_knowledge_graph
 
                 graph_fields = get_knowledge_graph().history_fields_for_document(entry.id)
-            except Exception:
-                pass
+            except Exception as exc:
+                self._logger.warning("Grafo de conhecimento indisponível: %s", exc)
             return entry.id, rel_summary, graph_fields
         except Exception as exc:
             self._logger.warning("Catalogação na biblioteca falhou: %s", exc)

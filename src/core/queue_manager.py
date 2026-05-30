@@ -9,6 +9,7 @@ from typing import Callable, Optional
 
 from src.cache.cache_engine import CacheEngine
 from src.core.export_service import ExportService
+from src.core.file_utils import check_windows_path_limits, unsupported_file_reason
 from src.core.job_errors import classify_job_error
 from src.core.job_processor import JobProcessor, QueueRunContext
 from src.core.log_service import get_logger
@@ -215,17 +216,19 @@ class QueueManager:
             job = TranscriptionJob(file_path=path)
             job.export_mode = self.settings.export_mode
             job.content_template = self.settings.content_template
-            if not job.is_supported():
-                info = classify_job_error(
-                    ValueError("Tipo de arquivo não suportado."), path
-                )
-                job.status = JobStatus.ERROR
-                job.error_message = info.user_message
-                job.error_code = info.error_code
-                self._logger.error("Tipo não suportado: %s", path)
             output_dir = self.settings.resolve_output_dir(path)
             fmt = self.settings.default_export_format  # type: ignore[arg-type]
             job.output_path = ExportService.build_output_path(path, output_dir, fmt)
+
+            validation_error = unsupported_file_reason(path)
+            if validation_error is None:
+                validation_error = check_windows_path_limits(path, job.output_path)
+            if validation_error:
+                info = classify_job_error(ValueError(validation_error), path)
+                job.status = JobStatus.ERROR
+                job.error_message = info.user_message
+                job.error_code = info.error_code
+                self._logger.error("%s: %s", validation_error, path)
             with self._jobs_lock:
                 self._jobs.append(job)
             added.append(job)

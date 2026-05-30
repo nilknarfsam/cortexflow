@@ -10,7 +10,7 @@
 **CortexFlow** (repositório `transcritor-universal`) é uma aplicação desktop **Python 3.10+** para transformar conteúdos brutos — áudio, vídeo, PDF, DOCX, XLSX, TXT e imagens (OCR) — em texto e artefatos exportáveis (TXT, JSON, Markdown), com pipeline opcional **AI-ready** (Clean, AI Ready, NotebookLM, Study Mode).
 
 - **Processamento:** 100% local — **OpenAI Whisper** (áudio/vídeo), **pdfplumber / python-docx / openpyxl** (documentos), **Tesseract** via **pytesseract** (imagens). Sem APIs externas de IA.
-- **Interface:** GUI **CustomTkinter** + drag-and-drop (`tkinterdnd2`). Entrada: `app.py` (alias legado: `app_transcricao.py`).
+- **Interface:** GUI **CustomTkinter** + drag-and-drop (`tkinterdnd2`). Entrada: `app.py` (alias legado arquivado: `_archive/app_transcricao.py`).
 - **Versão atual da UI:** **3.0.4 — Simplificação Radical** — fila de transcrição como foco absoluto (~85% da área); toolbar superior com ações em lote; configurações em modal; resultado em janela secundária. Painéis avançados arquivados em `src/ui/legacy_ui/`.
 - **Orquestração:** fila persistente (`data/queue_state.json`), cache SHA256 (`src/cache/`), histórico e settings em `data/`.
 - **Arquivos centrais do motor:**
@@ -96,6 +96,13 @@
 - [ ] Copiar `ffmpeg.exe`, `tesseract.exe` e DLLs para `bin/`.
 - [ ] Validar transcrição e OCR usando apenas binários locais (sem PATH do sistema).
 
+### Fase 3.4 — Faxina na Raiz e Diagnóstico Profundo
+
+- [x] Pasta `_archive/` na raiz (gitignored) — artefatos legados fora do build de produção.
+- [x] Raiz enxuta: `app.py`, `app_transcricao.spec`, `requirements*.txt`, `.gitignore`, `README.md`, `agent.md`, `src/`, `tests/`, `docs/`, `bin/` (+ `data/` runtime).
+- [x] Diagnóstico `src/core/`: exceções engolidas corrigidas (logging); validação de extensão vazia e `MAX_PATH` Windows; `PATH_TOO_LONG` em `job_errors`.
+- [x] Commits locais: `chore: limpar arquivos nao utilizados da raiz` + `fix: correcoes do diagnostico profundo de codigo`.
+
 ### Sprint UX 3.1 — Simplificação Radical da Interface
 
 - [x] Remover sidebar (`BrandSidebar`) e header de marca da tela principal.
@@ -121,7 +128,7 @@
 - [x] Build desktop one-directory (`dist/CortexFlow/`) — ver Fase 3.3 (substitui one-file da 3.2).
 - `pyproject.toml` + lockfile (uv/poetry).
 - CI mínimo (lint + testes).
-- Limpar artefatos na raiz do repo (ffmpeg/tesseract zip, histórico legado duplicado).
+- [x] Limpar artefatos na raiz do repo (ffmpeg/tesseract zip, histórico legado duplicado) — ver Fase 3.4 / `_archive/`.
 
 ### Fase 5 — UX de Processamento e Formatação de Saída
 
@@ -139,6 +146,7 @@ Registro cronológico (mais recente no topo).
 
 | Data | Tarefa | Resultado |
 |------|--------|-----------|
+| 2026-05-30 | Fase 3.4 — Faxina raiz + diagnóstico core | `_archive/` (10 artefatos); validação extensão/`MAX_PATH`; logging em exceções engolidas; commits locais. |
 | 2026-05-30 | Standalone 3.1 — prep bin/ + PATH | `bin/`, `inject_local_binaries_to_path()` em `app.py`, `datas` no spec; commit local. |
 | 2026-05-30 | Fase 3.3 — Release onedir (sem console) | `console=False` no spec; rebuild `dist/CortexFlow/`; commit local. |
 | 2026-05-30 | Fase 3.3 — Build one-directory + debug | Spec onedir + `COLLECT`, `console=True`, hiddenimports Whisper; `dist/CortexFlow/`; commit local. |
@@ -158,7 +166,7 @@ Registro cronológico (mais recente no topo).
 
 ## Referências rápidas
 
-- Documentação do produto: `README.md`, `CHANGELOG.md`
+- Documentação do produto: `README.md`, `_archive/CHANGELOG.md`
 - Dependências Python: `requirements.txt`
 - Dados em runtime: `data/` (settings, fila, cache, logs, library, datasets, knowledge_graph)
 - Testes: `python -m unittest discover -s tests -v`

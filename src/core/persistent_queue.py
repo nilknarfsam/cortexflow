@@ -107,8 +107,8 @@ class PersistentQueue:
         if QUEUE_STATE_FILE.exists():
             try:
                 QUEUE_STATE_FILE.unlink()
-            except OSError:
-                pass
+            except OSError as exc:
+                self._logger.warning("Não foi possível remover estado da fila: %s", exc)
 
     def has_snapshot(self) -> bool:
         return QUEUE_STATE_FILE.exists()

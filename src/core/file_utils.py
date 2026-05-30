@@ -6,6 +6,49 @@ import os
 
 from src.models.transcription_job import SUPPORTED_EXTENSIONS
 
+_WINDOWS_MAX_PATH = 260
+
+
+def normalized_path_length(path: str) -> int:
+    """Comprimento do caminho absoluto normalizado (relevante no limite MAX_PATH do Windows)."""
+    return len(os.path.normpath(os.path.abspath(path)))
+
+
+def check_windows_path_limits(*paths: str) -> str | None:
+    """Retorna mensagem em PT-BR se algum caminho excede ``MAX_PATH`` no Windows."""
+    if os.name != "nt":
+        return None
+    for path in paths:
+        if not path:
+            continue
+        length = normalized_path_length(path)
+        if length >= _WINDOWS_MAX_PATH:
+            return (
+                f"Caminho muito longo para o Windows ({length} caracteres, "
+                f"máximo {_WINDOWS_MAX_PATH - 1}): {os.path.basename(path)}"
+            )
+    return None
+
+
+def unsupported_file_reason(path: str) -> str | None:
+    """Motivo pelo qual o arquivo não é suportado, ou ``None`` se válido."""
+    ext = os.path.splitext(path)[1].lower()
+    if not ext:
+        return "Arquivo sem extensão não suportado."
+    if ext not in SUPPORTED_EXTENSIONS:
+        return f"Tipo de arquivo não suportado: {ext}"
+    return None
+
+
+def validate_job_paths(source_path: str, output_path: str = "") -> None:
+    """Valida extensão e limites de caminho; levanta ``ValueError`` com mensagem amigável."""
+    reason = unsupported_file_reason(source_path)
+    if reason:
+        raise ValueError(reason)
+    msg = check_windows_path_limits(source_path, output_path)
+    if msg:
+        raise ValueError(msg)
+
 
 def parse_dropped_paths(data: str) -> list[str]:
     """Interpreta caminhos do drag-and-drop no Windows (com ou sem chaves)."""
