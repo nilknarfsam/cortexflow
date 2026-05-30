@@ -12,3 +12,5 @@ build/
 data/logs/*.log
 data/logs/*.log.*
 _archive/
+bin/*.exe
+bin/tessdata/

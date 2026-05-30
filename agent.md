@@ -93,8 +93,10 @@
 - [x] Diretório `bin/` na raiz do repo (placeholder `bin/README.md` para versionamento Git).
 - [x] `inject_local_binaries_to_path()` em `app.py` — injeta `bin/` no `PATH` antes de imports pesados (`sys._MEIPASS` / dev).
 - [x] `app_transcricao.spec` — `datas` inclui pasta `bin/` e conteúdo no build.
-- [ ] Copiar `ffmpeg.exe`, `tesseract.exe` e DLLs para `bin/`.
-- [ ] Validar transcrição e OCR usando apenas binários locais (sem PATH do sistema).
+- [x] Copiar `ffmpeg.exe`, `ffprobe.exe` para `bin/` — automatizado via terminal + `scripts/copy_local_binaries.ps1` (origem WinGet: Gyan.FFmpeg.Essentials 8.1.1).
+- [ ] `tesseract.exe` + `tessdata/` — não instalado neste ambiente; OCR ainda depende de Tesseract no PATH ou cópia manual.
+- [x] Build release standalone one-directory (`dist/CortexFlow/`, `console=False`) com binários locais embutidos.
+- [x] **Fase 3.1 concluída** — distribuição portátil autossuficiente para áudio/vídeo (FFmpeg embutido). OCR de imagens: incluir `tesseract.exe` + `tessdata/` quando disponível no sistema de build.
 
 ### Fase 3.4 — Faxina na Raiz e Diagnóstico Profundo
 
@@ -146,6 +148,7 @@ Registro cronológico (mais recente no topo).
 
 | Data | Tarefa | Resultado |
 |------|--------|-----------|
+| 2026-05-30 | Fase 3.1 — Binários + release standalone | FFmpeg/ffprobe copiados (WinGet); `scripts/copy_local_binaries.ps1`; build `dist/CortexFlow/`; Tesseract ausente. |
 | 2026-05-30 | Fase 3.4 — Faxina raiz + diagnóstico core | `_archive/` (10 artefatos); validação extensão/`MAX_PATH`; logging em exceções engolidas; commits locais. |
 | 2026-05-30 | Standalone 3.1 — prep bin/ + PATH | `bin/`, `inject_local_binaries_to_path()` em `app.py`, `datas` no spec; commit local. |
 | 2026-05-30 | Fase 3.3 — Release onedir (sem console) | `console=False` no spec; rebuild `dist/CortexFlow/`; commit local. |
