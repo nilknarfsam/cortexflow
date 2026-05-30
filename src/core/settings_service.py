@@ -31,6 +31,13 @@ LEGACY_HISTORY_FILES = (
     PROJECT_ROOT / "_archive" / "historico_transcricoes.json",
 )
 
+
+def ensure_directory(path: Path) -> None:
+    """Cria ``path`` como diretório de forma idempotente (evita WinError 183 no Windows)."""
+    if path.is_dir():
+        return
+    os.makedirs(path, exist_ok=True)
+
 # Modos cujo pós-processamento (biblioteca, grafo, datasets) exige pipeline de conhecimento.
 EXPORT_MODES_REQUIRING_KNOWLEDGE = frozenset({"notebooklm", "study_mode", "ai_ready"})
 
@@ -74,7 +81,7 @@ class SettingsService:
         self._settings = dict(DEFAULT_SETTINGS)
         self._settings["features"] = dict(DEFAULT_FEATURES)
         self._history: list[dict[str, str]] = []
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        ensure_directory(DATA_DIR)
         self._migrate_legacy_history()
         self.load()
 
@@ -122,7 +129,7 @@ class SettingsService:
         self._ensure_features_defaults()
 
     def save_settings(self) -> None:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        ensure_directory(DATA_DIR)
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(self._settings, f, ensure_ascii=False, indent=2)
 
@@ -137,7 +144,7 @@ class SettingsService:
             return []
 
     def save_history(self) -> None:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        ensure_directory(DATA_DIR)
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(self._history, f, ensure_ascii=False, indent=2)
 

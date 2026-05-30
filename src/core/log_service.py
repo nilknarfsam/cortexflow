@@ -4,7 +4,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from src.core.settings_service import DATA_DIR
+from src.core.settings_service import DATA_DIR, ensure_directory
 
 LOG_DIR = DATA_DIR / "logs"
 LOG_FILE = LOG_DIR / "app.log"
@@ -18,7 +18,7 @@ def setup_logging() -> logging.Logger:
     if _CONFIGURED:
         return logger
 
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_directory(LOG_DIR)
     logger.setLevel(logging.DEBUG)
     logger.handlers.clear()
 
