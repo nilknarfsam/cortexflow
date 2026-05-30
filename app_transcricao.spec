@@ -1,9 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec — CortexFlow Desktop (one-file).
+PyInstaller spec — CortexFlow Desktop (one-directory).
 
-Dados do usuário (settings, fila, cache) NÃO são empacotados: criados em
-``<pasta_do_exe>/data/`` na primeira execução (ver settings_service.py).
+Saída: ``dist/CortexFlow/CortexFlow.exe`` (+ DLLs/libs na mesma pasta).
+Dados do usuário NÃO são empacotados — criados em ``<pasta_do_exe>/data/``
+(ver settings_service.py).
+
+console=True temporário (Fase 3.3) para debug de Whisper/PyTorch no build compilado.
 """
 
 from pathlib import Path
@@ -17,17 +20,16 @@ project_root = Path(SPECPATH)
 # Assets de UI — CustomTkinter (temas/fontes) e tkinterdnd2 (tkdnd + DLLs)
 datas = collect_data_files("customtkinter") + collect_data_files("tkinterdnd2")
 
-hiddenimports = [
+# Whisper / PyTorch — imports explícitos para evitar falhas silenciosas no onedir
+_whisper_torch = ["tiktoken", "torchaudio", "whisper", "torch"]
+
+hiddenimports = _whisper_torch + [
+    "tiktoken_ext",
+    "tiktoken_ext.openai_public",
     "customtkinter",
     "tkinterdnd2",
     "PIL",
     "PIL._tkinter_finder",
-    "whisper",
-    "torch",
-    "torchaudio",
-    "tiktoken",
-    "tiktoken_ext",
-    "tiktoken_ext.openai_public",
     "pdfplumber",
     "docx",
     "openpyxl",
@@ -75,20 +77,27 @@ pyz = PYZ(a.pure, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
     [],
+    exclude_binaries=True,
     name="CortexFlow",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name="CortexFlow",
 )
