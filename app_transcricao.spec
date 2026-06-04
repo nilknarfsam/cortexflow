@@ -10,12 +10,37 @@ Release: console=False (sem janela de terminal). Fase 3.3 usou console=True para
 """
 
 from pathlib import Path
+import importlib.util
+import sys
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 
 project_root = Path(SPECPATH)
+
+required_modules = [
+    "customtkinter",
+    "tkinterdnd2",
+    "whisper",
+    "torch",
+    "tiktoken",
+    "PIL",
+    "pdfplumber",
+    "docx",
+    "openpyxl",
+    "pytesseract",
+]
+missing_modules = [
+    module for module in required_modules if importlib.util.find_spec(module) is None
+]
+if missing_modules:
+    raise RuntimeError(
+        "Dependencias ausentes no Python usado pelo PyInstaller: "
+        + ", ".join(missing_modules)
+        + f"\nPython atual: {sys.executable}"
+        + "\nAtive o .venv correto e rode: python -m pip install -r requirements.txt -r requirements-build.txt"
+    )
 
 # Assets de UI — CustomTkinter (temas/fontes) e tkinterdnd2 (tkdnd + DLLs)
 datas = collect_data_files("customtkinter") + collect_data_files("tkinterdnd2")
