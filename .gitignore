@@ -9,6 +9,13 @@ dist/
 build/
 *.egg-info/
 .DS_Store
+data/cache/
+data/cache_registry.json
+data/historico_transcricoes.json
+data/queue_state.json
+data/settings.json
+!data/.gitkeep
+!data/logs/.gitkeep
 data/logs/*.log
 data/logs/*.log.*
 _archive/
