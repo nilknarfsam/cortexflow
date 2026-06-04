@@ -19,16 +19,23 @@ def _patch_subprocess_for_windows_windowless() -> None:
         return
 
     _CREATE_NO_WINDOW = 0x08000000
+    _STARTF_USESHOWWINDOW = 0x00000001
+    _SW_HIDE = 0
     _original_popen = subprocess.Popen
 
     class _Popen(_original_popen):
         def __init__(self, *args, **kwargs):
-            if "creationflags" not in kwargs:
-                kwargs["creationflags"] = _CREATE_NO_WINDOW
-            if getattr(sys, "frozen", False):
+            kwargs["creationflags"] = kwargs.get("creationflags", 0) | _CREATE_NO_WINDOW
+
+            startupinfo = kwargs.get("startupinfo")
+            if startupinfo is None:
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= _STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = _SW_HIDE
+                kwargs["startupinfo"] = startupinfo
+
+            if getattr(sys, "frozen", False) and "stdin" not in kwargs:
                 kwargs["stdin"] = subprocess.DEVNULL
-                kwargs["stdout"] = subprocess.DEVNULL
-                kwargs["stderr"] = subprocess.STDOUT
             super().__init__(*args, **kwargs)
 
     subprocess.Popen = _Popen  # type: ignore[misc, assignment]
