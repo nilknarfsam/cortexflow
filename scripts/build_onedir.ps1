@@ -26,10 +26,10 @@ function Invoke-Checked {
 }
 
 if (-not (Test-Path -LiteralPath $venvPython)) {
-    throw "Ambiente virtual nao encontrado em $venvPython. Crie com Python 3.10/3.11/3.12 e instale as dependencias."
+    throw "Ambiente virtual nao encontrado em $venvPython. Crie com Python 3.12 e instale as dependencias."
 }
 
-Invoke-Checked $venvPython -c "import sys; print(sys.version); assert sys.version_info < (3, 13), 'Use Python 3.10, 3.11 ou 3.12 para empacotar Whisper/Torch com mais estabilidade.'"
+Invoke-Checked $venvPython -c "import sys; print(sys.version); assert sys.version_info[:2] == (3, 12), 'Use Python 3.12 para o build oficial do CortexFlow.'"
 Invoke-Checked $venvPython -c "import whisper, torch, customtkinter, tkinterdnd2, PIL, pdfplumber, docx, openpyxl, pytesseract; print('Dependencias OK')"
 
 & (Join-Path $PSScriptRoot "copy_local_binaries.ps1")

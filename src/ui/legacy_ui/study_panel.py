@@ -80,7 +80,6 @@ class StudyPanel(ctk.CTkFrame):
         self.stats_label.pack(fill="x", padx=Layout.LG, pady=(0, Layout.SM))
 
     def _build_previews(self) -> None:
-        colors = self.theme.colors()
         grid = ctk.CTkFrame(self, fg_color="transparent")
         grid.pack(fill="both", expand=True, padx=Layout.LG, pady=(0, Layout.LG))
         grid.grid_columnconfigure(0, weight=1)
@@ -105,7 +104,6 @@ class StudyPanel(ctk.CTkFrame):
         return box
 
     def show_job(self, job: Optional[TranscriptionJob]) -> None:
-        colors = self.theme.colors()
         if not job or job.status.value != "concluído":
             self.study_badge.pack_forget()
             self.stats_label.configure(

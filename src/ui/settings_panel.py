@@ -214,6 +214,50 @@ class AppSettingsPanel(ctk.CTkFrame):
         ).grid(row=arow, column=0, sticky="w", pady=(0, Layout.MD))
         arow += 1
 
+        ctk.CTkLabel(
+            adv,
+            text="Diagnóstico do ambiente",
+            font=body_small(),
+            anchor="w",
+        ).grid(row=arow, column=0, sticky="w", pady=(Layout.XS, Layout.XS))
+        arow += 1
+
+        diagnostic_actions = ctk.CTkFrame(adv, fg_color="transparent")
+        diagnostic_actions.grid(row=arow, column=0, sticky="w", pady=(0, Layout.SM))
+        ctk.CTkButton(
+            diagnostic_actions,
+            text="Executar diagnóstico",
+            command=self._run_environment_diagnostics,
+            width=160,
+            **self.theme.ghost_button_kwargs(),
+        ).pack(side="left", padx=(0, Layout.SM))
+        self.copy_diagnostic_btn = ctk.CTkButton(
+            diagnostic_actions,
+            text="Copiar diagnóstico",
+            command=self._copy_environment_diagnostics,
+            width=150,
+            state="disabled",
+            **self.theme.ghost_button_kwargs(),
+        )
+        self.copy_diagnostic_btn.pack(side="left")
+        arow += 1
+
+        self.diagnostic_box = ctk.CTkTextbox(
+            adv,
+            height=150,
+            font=mono(10),
+            wrap="word",
+        )
+        self.diagnostic_box.grid(row=arow, column=0, sticky="ew", pady=(0, Layout.MD))
+        self.diagnostic_box.insert(
+            "1.0",
+            "Execute o diagnóstico para verificar FFmpeg, FFprobe, Tesseract, "
+            "Whisper, modelo base, PyTorch e a pasta de dados.",
+        )
+        self.diagnostic_box.configure(state="disabled")
+        self._last_diagnostic_text = ""
+        arow += 1
+
         self._library_advanced_host = ctk.CTkFrame(adv, fg_color="transparent")
         self._library_advanced_host.grid(row=arow, column=0, sticky="ew")
         self._library_advanced_host.grid_columnconfigure(0, weight=1)
@@ -417,6 +461,27 @@ class AppSettingsPanel(ctk.CTkFrame):
     def _clear_cache(self) -> None:
         if self.on_clear_cache:
             self.on_clear_cache()
+
+    def _run_environment_diagnostics(self) -> None:
+        from src.core.environment_diagnostics import collect_environment_diagnostics
+
+        report = collect_environment_diagnostics()
+        self._last_diagnostic_text = report.to_safe_text()
+        self.diagnostic_box.configure(state="normal")
+        self.diagnostic_box.delete("1.0", "end")
+        self.diagnostic_box.insert("1.0", self._last_diagnostic_text)
+        self.diagnostic_box.configure(state="disabled")
+        self.copy_diagnostic_btn.configure(state="normal")
+
+    def _copy_environment_diagnostics(self) -> None:
+        if not self._last_diagnostic_text:
+            return
+        self.clipboard_clear()
+        self.clipboard_append(self._last_diagnostic_text)
+        mb.showinfo(
+            "Diagnóstico",
+            "Diagnóstico técnico copiado sem caminhos locais ou conteúdo processado.",
+        )
 
     def _change_template(self, value: str) -> None:
         self.settings.content_template = value

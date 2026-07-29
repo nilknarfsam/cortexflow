@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 
 _HEADER = re.compile(r"^#{1,6}\s+", re.MULTILINE)
 _SENTENCE = re.compile(r"[.!?]+")

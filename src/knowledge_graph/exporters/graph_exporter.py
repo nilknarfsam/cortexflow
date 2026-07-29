@@ -56,9 +56,6 @@ class GraphExporter:
         return GRAPH_EXPORT_FILE
 
     def _related_section(self) -> list[str]:
-        from src.library import get_library
-
-        lib = get_library()
         lines: list[str] = []
         doc_nodes = [
             n for n in self._graph.nodes.values() if n.get("type") == "document"

@@ -7,7 +7,6 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from src.core.settings_service import DATA_DIR

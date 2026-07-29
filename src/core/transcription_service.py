@@ -94,8 +94,8 @@ class TranscriptionService:
             import whisper
         except ImportError as exc:
             raise RuntimeError(
-                "Whisper não instalado. Rode instalar_dependencias.bat ou "
-                "pip install -r requirements.txt"
+                "Whisper não instalado. Ative o ambiente virtual e execute "
+                "pip install -r requirements.txt."
             ) from exc
         return whisper
 

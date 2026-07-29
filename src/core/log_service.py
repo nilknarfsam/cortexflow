@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
 
 from src.core.settings_service import DATA_DIR, ensure_directory
 

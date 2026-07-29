@@ -1,0 +1,3 @@
+# Ferramentas de qualidade usadas localmente e no CI.
+coverage==7.15.2
+ruff==0.16.0

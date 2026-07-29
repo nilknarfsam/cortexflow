@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Any
 
-from src.knowledge_graph.nodes.node_builder import document_node_id, make_node_id
+from src.knowledge_graph.nodes.node_builder import document_node_id
 
 if TYPE_CHECKING:
     from src.knowledge_graph.graph_engine import GraphEngine
@@ -62,7 +62,6 @@ class RelatedDocumentsFinder:
                 if r not in scores[other_cid]["reasons"]:
                     scores[other_cid]["reasons"].append(r)
 
-        graph_ids = set(scores.keys())
         pairwise = self._pairwise_score(source, lib.catalog.all_entries, exclude_id=catalog_id)
         for cid, data in pairwise.items():
             if cid in scores:

@@ -1,0 +1,24 @@
+[project]
+name = "cortexflow"
+version = "3.0.4"
+requires-python = "==3.12.*"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["src/ui/legacy_ui"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+"app.py" = ["E402"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/core", "src/cache", "src/models"]
+
+[tool.coverage.report]
+fail_under = 55
+show_missing = true
+skip_covered = true

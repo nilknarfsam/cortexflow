@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.knowledge_graph.nodes.node_builder import document_node_id, make_node_id
+from src.knowledge_graph.nodes.node_builder import make_node_id
 
 if TYPE_CHECKING:
     from src.knowledge_graph.graph_engine import GraphEngine

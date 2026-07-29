@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from src.core.settings_service import SettingsService
 from src.knowledge_graph import get_knowledge_graph

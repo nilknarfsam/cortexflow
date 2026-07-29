@@ -118,7 +118,9 @@ class DatasetValidator:
         label: str,
         report: ValidationReport,
     ) -> None:
-        for field in fields:
-            if field not in record:
-                report.errors.append(f"{label}: campo obrigatório ausente '{field}'")
+        for field_name in fields:
+            if field_name not in record:
+                report.errors.append(
+                    f"{label}: campo obrigatório ausente '{field_name}'"
+                )
                 report.valid = False

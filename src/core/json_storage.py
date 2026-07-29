@@ -37,4 +37,3 @@ def atomic_write_json(path: Path, payload: Any, *, indent: int = 2) -> None:
                 temp_path.unlink(missing_ok=True)
             except OSError:
                 pass
-

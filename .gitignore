@@ -8,6 +8,10 @@ env/
 dist/
 build/
 *.egg-info/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
 .DS_Store
 data/cache/
 data/cache_registry.json

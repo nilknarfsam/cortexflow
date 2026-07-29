@@ -250,7 +250,6 @@ class ResultPanel(ctk.CTkFrame):
             return
         from src.ui.design.colors import SEMANTIC
 
-        colors = self.theme.colors()
         self.study_badge.configure(fg_color=SEMANTIC["success"])
         self.study_badge.pack(side="left", padx=(Layout.XS, 0))
         extra = (
