@@ -1,7 +1,12 @@
-# CortexFlow — Contexto Global do Agente
+# CortexFlow — Contexto histórico do agente
 
-> **Fonte de verdade** para assistentes de IA e desenvolvedores.  
-> **Regra:** ler este arquivo **antes** de iniciar qualquer tarefa; **atualizar** ao concluir.
+> **Documento legado.** As instruções vigentes estão em
+> [`AGENTS.md`](AGENTS.md), e a memória atual está em
+> [`contexto/README.md`](contexto/README.md). Este arquivo é preservado como
+> histórico até que todo o conteúdo útil seja migrado.
+
+> **Registro histórico:** não usar as regras abaixo sem validá-las contra
+> `AGENTS.md` e `contexto/`.
 
 ---
 

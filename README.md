@@ -1,143 +1,218 @@
-# CortexFlow · 3.0.4
+# CortexFlow
 
-> 🎙️ **Ferramenta desktop profissional e totalmente local** para transcrição de áudio e vídeo em lote — otimizada para estruturação de conhecimento e ingestão em IAs como **NotebookLM**, GPT Projects e pipelines RAG.
+> Aplicação desktop local para transformar áudios, vídeos e documentos em conteúdo
+> estruturado, pesquisável e pronto para fluxos de conhecimento.
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Qualidade](https://github.com/nilknarfsam/cortexflow/actions/workflows/quality.yml/badge.svg)](https://github.com/nilknarfsam/cortexflow/actions/workflows/quality.yml)
 [![Whisper](https://img.shields.io/badge/OpenAI-Whisper-412991?logo=openai&logoColor=white)](https://github.com/openai/whisper)
-[![Offline](https://img.shields.io/badge/Processamento-100%25%20local-success)]()
-[![License](https://img.shields.io/badge/License-Uso%20interno-lightgrey)]()
+[![Processamento local](https://img.shields.io/badge/processamento-local-2E8B57)](#privacidade)
+[![Versão](https://img.shields.io/badge/versão-3.0.4-6C63FF)](https://github.com/nilknarfsam/cortexflow)
 
-Transforme horas de áudio, vídeo, PDFs, documentos Office e imagens (OCR) em **texto estruturado** — sem enviar dados para a nuvem. O CortexFlow 3.0.4 consolida uma interface enxuta, fila persistente e motor de transcrição pronto para produção em lote.
+CortexFlow combina transcrição com OpenAI Whisper, extração de documentos, fila
+persistente e exportação estruturada em uma interface para Windows. O processamento
+principal acontece no computador do usuário: o projeto não depende de uma API externa
+para transcrever os arquivos.
 
----
+## Visão geral
 
-## ✨ Recursos principais
+- Transcrição local de áudio e vídeo com Whisper e FFmpeg.
+- Fila em lote com seleção, progresso, cancelamento e recuperação de sessão.
+- Extração de texto de PDF, DOCX, XLSX, TXT e imagens por OCR.
+- Cache por conteúdo para evitar processamento repetido.
+- Exportação em TXT, Markdown e JSON.
+- Modos de estruturação Raw, Clean, AI Ready, NotebookLM e Study Mode.
+- Diagnóstico integrado de dependências e do ambiente local.
+- Persistência JSON com gravação atômica para proteger configurações, fila e cache.
 
-- **Processamento em lote com fila inteligente e thread-safe** — adicione dezenas de arquivos, acompanhe status em tempo real e retome sessões interrompidas via `data/queue_state.json`.
-- **Transcrição 100% offline** utilizando os modelos **OpenAI Whisper** (singleton em memória, progresso real capturado da barra tqdm).
-- **Saída em Markdown estruturado** com separação de parágrafos e timestamps precisos **`[MM:SS]`** — adeus ao *wall of text*; blocos legíveis para leitura humana e ingestão em IAs.
-- **Interface desktop (GUI) limpa, responsiva e focada em produtividade** — CustomTkinter + drag-and-drop; fila como elemento central (~85% da tela); configurações em modal; resultado em janela secundária.
-- **Gerenciamento de cache inteligente (SHA256)** — evita reprocessar arquivos já transcritos; indicadores HIT / MISS / PARTIAL na UI.
-- **Extração multimodal** — PDF (`pdfplumber`), DOCX, XLSX, TXT e OCR em imagens via **Tesseract** (`pytesseract`).
-- **Exportação flexível** — TXT, JSON e Markdown; modos *Raw*, *Clean*, *AI Ready*, *NotebookLM* e *Study Mode*.
-- **Fila persistente e recovery automático** — retoma trabalho após fechar o app ou queda de energia.
-- **Atalhos de teclado** — `Ctrl+O` (abrir), `Ctrl+T` (iniciar fila), `Ctrl+E` (exportar), `Ctrl+,` (configurações).
+## Requisitos
 
----
+| Componente | Obrigatório | Finalidade |
+|---|:---:|---|
+| Windows 10 ou 11 | Sim | Plataforma atualmente validada |
+| Python 3.12 | Sim | Runtime oficial do projeto |
+| FFmpeg e FFprobe | Sim | Leitura e conversão de áudio e vídeo |
+| Tesseract OCR | Não | Extração de texto de imagens |
+| GPU compatível com CUDA | Não | Aceleração opcional da transcrição |
 
-## 📋 Pré-requisitos
+O primeiro uso de um modelo Whisper pode exigir conexão com a internet para baixá-lo.
+Depois do download, a transcrição pode ser executada localmente.
 
-| Requisito | Obrigatório | Observação |
-|-----------|:-----------:|------------|
-| **Python 3.10+** | ✅ | Marque *Add Python to PATH* na instalação. [python.org/downloads](https://www.python.org/downloads/) |
-| **FFmpeg** | ✅ **Crítico** | **Obrigatório** para Whisper transcrever áudio e vídeo. Deve estar no **PATH do sistema** (Windows). |
-| **Tesseract OCR** | ⚠️ | Necessário apenas para imagens (JPG, PNG). [Instalação Windows](https://github.com/UB-Mannheim/tesseract/wiki) |
-| **GPU CUDA** | ❌ | Opcional — acelera Whisper; CPU funciona normalmente. |
+## Instalação
 
-### ⚠️ FFmpeg no Windows (não pule esta etapa)
+Abra o PowerShell e execute:
 
-Sem FFmpeg no PATH, a transcrição de áudio/vídeo **falhará**. Após instalar:
+```powershell
+git clone https://github.com/nilknarfsam/cortexflow.git
+cd cortexflow
+
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Instale o FFmpeg pelo gerenciador do Windows:
+
+```powershell
+winget install --id Gyan.FFmpeg -e
+```
+
+Feche e reabra o terminal após a instalação. Confirme o ambiente:
 
 ```powershell
 ffmpeg -version
+ffprobe -version
 ```
 
-Se o comando não for reconhecido, adicione a pasta `bin` do FFmpeg às variáveis de ambiente do Windows (ex.: builds em [gyan.dev/ffmpeg/builds](https://www.gyan.dev/ffmpeg/builds/)).
+Como alternativa para desenvolvimento e empacotamento, os executáveis podem ser
+copiados para `bin/`:
 
-> 💡 **Dica:** reinicie o terminal (ou o VS Code) após alterar o PATH.
-
----
-
-## 🚀 Instalação
-
-```bash
-# 1. Clonar o repositório
-git clone https://github.com/seu-usuario/transcritor-universal.git
-cd transcritor-universal
-
-# 2. Criar ambiente virtual
-python -m venv .venv
-
-# 3. Ativar o ambiente
-# Windows (PowerShell)
-.venv\Scripts\Activate.ps1
-# Windows (CMD)
-.venv\Scripts\activate.bat
-# Linux / macOS
-source .venv/bin/activate
-
-# 4. Instalar dependências Python
-pip install -r requirements.txt
+```powershell
+.\scripts\copy_local_binaries.ps1
 ```
 
-Alternativa no Windows: execute `instalar_dependencias.bat` (se disponível no repositório).
+Os binários locais não são versionados por causa do tamanho.
 
----
+## Execução
 
-## ▶️ Como executar
+Com o ambiente virtual ativo:
 
-Na raiz do projeto, com o ambiente virtual ativo:
-
-```bash
+```powershell
 python app.py
 ```
 
-Alias legado compatível: `python app_transcricao.py`
+Na interface:
 
----
+1. Adicione arquivos pelo seletor ou arraste-os para a fila.
+2. Ajuste modelo, idioma, formato e modo de exportação nas configurações.
+3. Selecione os itens desejados e inicie o processamento.
+4. Consulte os resultados e arquivos exportados pela própria aplicação.
 
-## 🛠️ Stack tecnológica
+Atalhos principais:
 
-| Camada | Tecnologia |
-|--------|------------|
-| **Linguagem** | Python 3.10+ |
-| **Transcrição** | [OpenAI Whisper](https://github.com/openai/whisper) |
-| **Interface** | [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) + [tkinterdnd2](https://github.com/pmgagne/tkinterdnd2) (drag-and-drop) |
-| **Documentos** | [pdfplumber](https://github.com/jsvine/pdfplumber), [python-docx](https://python-docx.readthedocs.io/), [openpyxl](https://openpyxl.readthedocs.io/) |
-| **OCR** | [Tesseract](https://github.com/tesseract-ocr/tesseract) via [pytesseract](https://github.com/madmaze/pytesseract) |
-| **Mídia** | FFmpeg (dependência de sistema) |
-| **Imagens** | [Pillow](https://python-pillow.org/) |
-| **Persistência** | JSON local em `data/` (settings, fila, cache, histórico, logs) |
+| Atalho | Ação |
+|---|---|
+| `Ctrl+O` | Adicionar arquivos |
+| `Ctrl+T` | Iniciar a fila |
+| `Ctrl+E` | Exportar |
+| `Ctrl+,` | Abrir configurações |
 
----
+## Formatos
 
-## 📁 Formatos suportados
+| Categoria | Extensões |
+|---|---|
+| Áudio | `.mp3`, `.wav`, `.m4a`, `.flac` |
+| Vídeo | `.mp4`, `.avi`, `.mov`, `.mkv` |
+| Documentos | `.txt`, `.pdf`, `.docx`, `.xlsx` |
+| Imagens com OCR | `.jpg`, `.jpeg`, `.png` |
 
-| Tipo | Extensões |
-|------|-----------|
-| Áudio | `.mp3` `.wav` `.m4a` `.flac` |
-| Vídeo | `.mp4` `.avi` `.mov` `.mkv` |
-| Texto / Office | `.txt` `.pdf` `.docx` `.xlsx` |
-| Imagem (OCR) | `.jpg` `.jpeg` `.png` |
+## Diagnóstico
 
----
+Em **Configurações → Mostrar configurações avançadas → Executar diagnóstico**, o
+CortexFlow verifica:
 
-## 📖 Documentação adicional
+- FFmpeg e FFprobe;
+- Tesseract;
+- Whisper e PyTorch;
+- disponibilidade do modelo base;
+- permissão de gravação da pasta de dados.
 
-| Recurso | Descrição |
-|---------|-----------|
-| [CHANGELOG.md](CHANGELOG.md) | Histórico de versões e mudanças |
-| [agent.md](agent.md) | Contexto técnico e fases de refatoração |
-| [docs/CODE_REVIEW_REPORT.md](docs/CODE_REVIEW_REPORT.md) | Relatório da sprint de qualidade |
-| [docs/UI_CLEANUP_REPORT.md](docs/UI_CLEANUP_REPORT.md) | Relatório da simplificação UX 3.1 |
+O relatório pode ser copiado para suporte sem incluir caminhos locais, conteúdo
+processado ou credenciais.
 
----
+## Desenvolvimento e qualidade
 
-## 🧪 Testes
+Instale as dependências de desenvolvimento:
 
-```bash
-python -m unittest discover -s tests -v
+```powershell
+python -m pip install -r requirements-dev.txt
 ```
 
----
+Execute a validação completa:
 
-## 📄 Licença
+```powershell
+python -m ruff check app.py src tests
+python -m coverage run -m unittest discover -s tests -v
+python -m coverage report
+python -m compileall -q app.py src tests
+```
 
-Consulte o repositório para termos de uso. Processamento 100% local — seus arquivos não saem da máquina.
+O pipeline de integração contínua executa essas verificações no Windows com Python
+3.12. A cobertura automatizada concentra-se inicialmente em `src/core`, `src/cache`
+e `src/models`, com piso de 55%.
+
+## Empacotamento para Windows
+
+O build utiliza PyInstaller em modo *one-directory*:
+
+```powershell
+python -m pip install -r requirements-build.txt
+.\scripts\copy_local_binaries.ps1
+.\scripts\build_onedir.ps1
+```
+
+O artefato é criado em `dist/CortexFlow/`. Esta etapa será fortalecida com um teste
+automatizado de inicialização do executável.
+
+## Arquitetura
+
+```text
+app.py
+└── src/
+    ├── ui/                 interface e componentes visuais
+    ├── core/               fila, processamento, extração e exportação
+    ├── cache/              identificação e reutilização de resultados
+    ├── models/             modelos de domínio
+    ├── ai_ready/           estruturação para IA e NotebookLM
+    ├── semantic/           tópicos, referências e timestamps
+    ├── study/              resumos, revisões, quizzes e flashcards
+    ├── datasets/           construção e validação de datasets
+    ├── library/            catálogo, coleções e espaços de trabalho
+    └── knowledge_graph/    relações e navegação do conhecimento
+```
+
+Os dados de execução ficam sob `data/` e não devem ser enviados ao repositório.
+A memória técnica e o planejamento vivo do projeto ficam em [`contexto/`](contexto/README.md).
+
+## Privacidade
+
+O CortexFlow foi projetado para processar arquivos localmente. Transcrições, cache,
+histórico e configurações permanecem no computador do usuário. A obtenção inicial
+de dependências e modelos pode usar a internet, mas o fluxo de transcrição não envia
+o conteúdo para uma API do projeto.
+
+Antes de compartilhar logs ou relatórios, ainda é recomendável revisar o conteúdo
+gerado pelo sistema operacional e por ferramentas externas.
+
+## Estado do projeto
+
+A versão 3.0.4 está em evolução ativa. A fila, a persistência, o cache, a exportação
+e o diagnóstico possuem testes automatizados, mas ainda existem áreas avançadas com
+cobertura menor e módulos de interface legada preservados para migração gradual.
+
+Consulte:
+
+- [`contexto/ESTADO_ATUAL.md`](contexto/ESTADO_ATUAL.md) — fotografia técnica atual;
+- [`contexto/ROADMAP.md`](contexto/ROADMAP.md) — direção de evolução;
+- [`contexto/DECISOES.md`](contexto/DECISOES.md) — decisões duradouras;
+- [`docs/`](docs/) — relatórios históricos e análises anteriores.
+
+## Contribuição
+
+Antes de alterar o projeto, leia [`AGENTS.md`](AGENTS.md). Prefira mudanças pequenas,
+compatíveis com a arquitetura existente e acompanhadas de testes proporcionais ao
+risco. Pull requests devem manter as verificações de qualidade aprovadas.
+
+## Licença
+
+Este repositório ainda não possui um arquivo de licença. Até que uma licença seja
+definida pelo responsável, não presuma autorização para uso, modificação ou
+redistribuição fora dos direitos concedidos pela legislação aplicável.
 
 ---
 
 <p align="center">
-  <strong>CortexFlow 3.0.4</strong> — transcreva em lote, estruture conhecimento, alimente suas IAs.<br>
-  <sub>Feito com 🐍 Python · 🔒 privacidade por design</sub>
+  <strong>CortexFlow 3.0.4</strong><br>
+  Transcrição local, organização do conhecimento e exportação estruturada.
 </p>
