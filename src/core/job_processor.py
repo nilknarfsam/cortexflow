@@ -124,9 +124,7 @@ class JobProcessor:
                 return
 
             if ctx.is_stop_requested():
-                job.status = JobStatus.CANCELLED
-                job.error_message = "Cancelado durante o processamento."
-                ctx.on_persist(is_processing=True)
+                self._cancel_job(job, ctx)
                 return
 
             job.result_text = text
@@ -135,8 +133,7 @@ class JobProcessor:
             ctx.on_notify(job)
 
             if ctx.is_stop_requested():
-                job.status = JobStatus.CANCELLED
-                job.error_message = "Cancelado durante o processamento."
+                self._cancel_job(job, ctx)
                 return
 
             if self._try_cached_export_shortcut(
@@ -181,6 +178,14 @@ class JobProcessor:
                 format_traceback(exc),
             )
 
+        ctx.on_notify(job)
+        ctx.on_persist(is_processing=True)
+
+    @staticmethod
+    def _cancel_job(job: TranscriptionJob, ctx: QueueRunContext) -> None:
+        """Finaliza cancelamento com estado visível e persistido."""
+        job.status = JobStatus.CANCELLED
+        job.error_message = "Cancelado durante o processamento."
         ctx.on_notify(job)
         ctx.on_persist(is_processing=True)
 

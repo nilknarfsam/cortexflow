@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from src.core.json_storage import atomic_write_json
+
 
 def _resolve_project_root() -> Path:
     """Raiz do app: pasta do .exe (PyInstaller) ou repositório em desenvolvimento."""
@@ -130,8 +132,7 @@ class SettingsService:
 
     def save_settings(self) -> None:
         ensure_directory(DATA_DIR)
-        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(self._settings, f, ensure_ascii=False, indent=2)
+        atomic_write_json(SETTINGS_FILE, self._settings)
 
     def _load_history_file(self) -> list[dict[str, str]]:
         if not HISTORY_FILE.exists():
@@ -145,8 +146,7 @@ class SettingsService:
 
     def save_history(self) -> None:
         ensure_directory(DATA_DIR)
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(self._history, f, ensure_ascii=False, indent=2)
+        atomic_write_json(HISTORY_FILE, self._history)
 
     @property
     def theme(self) -> str:

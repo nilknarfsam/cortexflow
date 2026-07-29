@@ -24,6 +24,14 @@ ProgressCallback = Callable[[float, "QueueStats"], None]
 RecoveryCallback = Callable[[dict], None]
 
 
+def _safe_nonnegative_int(value: object) -> int:
+    """Converte contadores persistidos sem interromper a recuperação da fila."""
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
 @dataclass(frozen=True)
 class QueueStats:
     """Contadores agregados da fila para a barra de status."""
@@ -176,8 +184,8 @@ class QueueManager:
             self._selected_id = (
                 sel if self._get_job_unlocked(sel) else (jobs[0].id if jobs else None)
             )
-        self._session_completed = int(raw.get("session_completed", 0))
-        self._session_errors = int(raw.get("session_errors", 0))
+        self._session_completed = _safe_nonnegative_int(raw.get("session_completed", 0))
+        self._session_errors = _safe_nonnegative_int(raw.get("session_errors", 0))
         self._recovery_meta = meta
         self._queue_restored = True
         meta["auto"] = auto

@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Optional
 
 from src.core.log_service import get_logger
+from src.core.json_storage import atomic_write_json
 from src.core.settings_service import DATA_DIR
 from src.models.transcription_job import JobStatus, TranscriptionJob
 
@@ -54,10 +55,7 @@ class PersistentQueue:
             "jobs": [self._job_to_dict(j) for j in jobs],
         }
         try:
-            tmp = QUEUE_STATE_FILE.with_suffix(".tmp")
-            with open(tmp, "w", encoding="utf-8") as f:
-                json.dump(payload, f, ensure_ascii=False, indent=2)
-            tmp.replace(QUEUE_STATE_FILE)
+            atomic_write_json(QUEUE_STATE_FILE, payload)
         except OSError as exc:
             self._logger.warning("Falha ao persistir fila: %s", exc)
 
@@ -125,6 +123,7 @@ class PersistentQueue:
             "error_code": job.error_code,
             "semantic_metadata": dict(job.semantic_metadata),
             "study_metadata": dict(job.study_metadata),
+            "dataset_metadata": dict(job.dataset_metadata),
             "pipeline_progress": dict(job.pipeline_progress),
             "job_progress": job.job_progress,
             "export_mode": job.export_mode,
@@ -155,9 +154,19 @@ class PersistentQueue:
         study = data.get("study_metadata", {})
         if not isinstance(study, dict):
             study = {}
+        dataset = data.get("dataset_metadata", {})
+        if not isinstance(dataset, dict):
+            dataset = {}
         job_id = str(data.get("id") or "").strip()
         if not job_id:
             job_id = str(uuid.uuid4())
+        try:
+            job_progress = float(data.get("job_progress", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            job_progress = 0.0
+        if not math.isfinite(job_progress):
+            job_progress = 0.0
+        job_progress = max(0.0, min(1.0, job_progress))
         return TranscriptionJob(
             file_path=path,
             id=job_id,
@@ -168,8 +177,9 @@ class PersistentQueue:
             error_code=str(data.get("error_code", "")),
             semantic_metadata=semantic,
             study_metadata=study,
+            dataset_metadata=dataset,
             pipeline_progress={k: bool(v) for k, v in progress.items() if k in PIPELINE_CHECKPOINTS},
-            job_progress=float(data.get("job_progress", 0.0) or 0.0),
+            job_progress=job_progress,
             export_mode=str(data.get("export_mode", "")),
             content_template=str(data.get("content_template", "")),
             file_hash=str(data.get("file_hash", "")),

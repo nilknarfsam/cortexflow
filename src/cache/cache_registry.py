@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from src.core.json_storage import atomic_write_json
 from src.core.settings_service import DATA_DIR
 
 REGISTRY_FILE = DATA_DIR / "cache_registry.json"
@@ -37,8 +38,10 @@ class CacheRegistry:
 
     def save(self) -> None:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
-        with open(REGISTRY_FILE, "w", encoding="utf-8") as f:
-            json.dump({"version": 1, "entries": self._entries}, f, ensure_ascii=False, indent=2)
+        atomic_write_json(
+            REGISTRY_FILE,
+            {"version": 1, "entries": self._entries},
+        )
 
     @property
     def entries(self) -> dict[str, dict[str, Any]]:
