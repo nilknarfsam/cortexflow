@@ -48,4 +48,27 @@ finally {
 }
 
 Write-Host ""
-Write-Host "Build concluido em: $root\dist\CortexFlow\CortexFlow.exe"
+$distDir = Join-Path $root "dist\CortexFlow"
+$executable = Join-Path $distDir "CortexFlow.exe"
+$ffmpegDist = Join-Path $distDir "_internal\bin\ffmpeg.exe"
+$ffprobeDist = Join-Path $distDir "_internal\bin\ffprobe.exe"
+
+foreach ($requiredFile in @($executable, $ffmpegDist, $ffprobeDist)) {
+    if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
+        throw "Build incompleto: arquivo obrigatorio ausente em $requiredFile"
+    }
+}
+
+$smokeProcess = Start-Process `
+    -FilePath $executable `
+    -ArgumentList "--smoke-test" `
+    -WorkingDirectory $distDir `
+    -WindowStyle Hidden `
+    -Wait `
+    -PassThru
+if ($smokeProcess.ExitCode -ne 0) {
+    throw "Smoke test do executavel falhou com codigo $($smokeProcess.ExitCode)."
+}
+
+Write-Host "Smoke test do executavel: OK"
+Write-Host "Build concluido em: $executable"

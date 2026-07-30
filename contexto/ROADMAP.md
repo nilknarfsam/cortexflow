@@ -1,6 +1,6 @@
 # Roadmap
 
-Última revisão: 2026-07-28
+Última revisão: 2026-07-29
 
 Execução detalhada: [`PLANO_EXECUCAO.md`](PLANO_EXECUCAO.md).
 
@@ -15,11 +15,11 @@ simplicidade do fluxo principal.
 Objetivo: toda alteração deve receber feedback automatizado rápido.
 
 - [Concluído] Corrigir instalação, links e comandos do README.
-- Adotar `pyproject.toml` como configuração central.
-- Configurar lint, formatação e cobertura.
-- Criar CI para versões de Python oficialmente suportadas.
-- Fixar ou limitar versões de dependências.
-- Cobrir fila, persistência, cache, exportação e classificação de erros.
+- [Concluído] Adotar `pyproject.toml` como configuração central.
+- [Concluído] Configurar lint, formatação e cobertura.
+- [Concluído] Criar CI para versões de Python oficialmente suportadas.
+- [Concluído] Fixar ou limitar versões de dependências.
+- [Concluído] Cobrir fila, persistência, cache, exportação e classificação de erros.
 
 Critério de conclusão: CI obrigatória e verde, documentação executável e cobertura
 significativa do núcleo sem carregar um modelo Whisper real.
@@ -28,11 +28,14 @@ significativa do núcleo sem carregar um modelo Whisper real.
 
 Objetivo: reduzir falhas difíceis de explicar no computador do usuário.
 
-- Diagnosticar FFmpeg, FFprobe, Tesseract, Python e modelo Whisper.
-- Exibir mensagens acionáveis e opção de copiar diagnóstico.
-- Padronizar logs sem expor conteúdo sensível.
-- Criar smoke test do build one-directory.
-- Revisar o patch global de `subprocess.Popen`.
+- [Concluído] Diagnosticar FFmpeg, FFprobe, Tesseract, Python e modelo Whisper.
+- [Concluído] Exibir mensagens acionáveis e opção de copiar diagnóstico.
+- [Concluído] Padronizar logs sem expor conteúdo sensível.
+- [Concluído] Criar smoke test do build one-directory.
+- [Concluído] Revisar o patch global de `subprocess.Popen`.
+
+O horizonte foi concluído em 2026-07-29. O patch foi mantido por atender
+subprocessos internos de terceiros, mas agora está isolado, idempotente e testado.
 
 Critério de conclusão: problemas comuns de ambiente podem ser identificados pela
 interface e reproduzidos por um relatório técnico seguro.

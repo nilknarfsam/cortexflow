@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,7 @@ def atomic_write_json(path: Path, payload: Any, *, indent: int = 2) -> None:
             handle.flush()
             os.fsync(handle.fileno())
 
-        os.replace(temp_path, path)
+        _replace_with_retry(temp_path, path)
         temp_path = None
     finally:
         if temp_path is not None:
@@ -37,3 +38,15 @@ def atomic_write_json(path: Path, payload: Any, *, indent: int = 2) -> None:
                 temp_path.unlink(missing_ok=True)
             except OSError:
                 pass
+
+
+def _replace_with_retry(source: Path, destination: Path, attempts: int = 4) -> None:
+    """Contorna bloqueios transitórios de indexadores e antivírus no Windows."""
+    for attempt in range(attempts):
+        try:
+            os.replace(source, destination)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(0.05 * (attempt + 1))

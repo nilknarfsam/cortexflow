@@ -3,6 +3,18 @@
 Decisões mais recentes devem ser adicionadas no topo. Use um identificador
 sequencial e preserve decisões substituídas como histórico.
 
+## DEC-002 — Preservar patch global de subprocessos com isolamento
+
+- Data: 2026-07-29
+- Status: aceita
+- Contexto: Whisper e pytesseract criam subprocessos internamente e não oferecem
+  um ponto único do CortexFlow para definir flags de janela no Windows.
+- Decisão: manter a substituição de `subprocess.Popen`, movendo-a para um módulo
+  idempotente e testado que preserva argumentos explícitos do chamador.
+- Consequências: FFmpeg e Tesseract continuam sem janelas de console no aplicativo
+  windowless; a alteração global permanece explícita, limitada ao Windows e
+  protegida por testes de flags, `stdin`, `startupinfo` e reaplicação.
+
 ## DEC-001 — Memória versionada separada das instruções
 
 - Data: 2026-07-28

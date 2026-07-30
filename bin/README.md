@@ -1,6 +1,7 @@
-# Binários locais (Standalone / Portátil)
+# Binários locais
 
-Pasta injetada no `PATH` por `inject_local_binaries_to_path()` em `app.py` e empacotada via `app_transcricao.spec` (`datas` → `bin/`).
+Esta pasta é priorizada no `PATH` pelo bootstrap de `app.py` e empacotada pelo
+`app_transcricao.spec`.
 
 ## Conteúdo esperado
 
@@ -11,19 +12,24 @@ Pasta injetada no `PATH` por `inject_local_binaries_to_path()` em `app.py` e emp
 | `tesseract.exe` | OCR de imagens (opcional) |
 | `tessdata/` | Idiomas Tesseract (opcional) |
 
-## Automação (Windows)
+## Origem validada
 
-Origem detectada via WinGet (2026-05-30):
+| Componente | Versão | Distribuição |
+|---|---|---|
+| FFmpeg e FFprobe | 8.1.1 | Gyan FFmpeg Essentials via WinGet |
 
-```
-%LOCALAPPDATA%\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin\
-```
-
-Comando PowerShell para recopiar FFmpeg:
+Instalação:
 
 ```powershell
-$src = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin"
-Copy-Item -LiteralPath "$src\ffmpeg.exe","$src\ffprobe.exe" -Destination "$PSScriptRoot" -Force
+winget install --id Gyan.FFmpeg -e
 ```
 
-> Os `.exe` **não** são versionados no Git (ver `.gitignore`). Copie-os localmente antes do build PyInstaller.
+O script resolve tanto comandos no `PATH` quanto a instalação gerenciada pelo
+WinGet e valida os dois executáveis:
+
+```powershell
+.\scripts\copy_local_binaries.ps1
+```
+
+Os arquivos `.exe` não são versionados no Git. Eles devem ser copiados novamente
+antes de cada build de distribuição.

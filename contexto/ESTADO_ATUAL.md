@@ -1,6 +1,6 @@
 # Estado atual
 
-Última revisão: 2026-07-28
+Última revisão: 2026-07-29
 
 ## Produto
 
@@ -20,15 +20,15 @@ O fluxo principal está concentrado em:
 
 ## Fotografia técnica
 
-| Indicador | Estado em 2026-07-28 |
+| Indicador | Estado em 2026-07-29 |
 |---|---|
 | Branch | `main`, alinhada com `origin/main` no momento da revisão |
 | Código Python | 134 arquivos e aproximadamente 14.600 linhas em `src/` |
-| Testes | 57 testes `unittest`, todos aprovados com Python 3.12 |
+| Testes | 63 testes `unittest`, todos aprovados com Python 3.12 |
 | Compilação | `compileall` aprovado |
 | Tooling | `pyproject.toml`, Ruff, coverage e GitHub Actions configurados |
 | Dependências | Dependências diretas fixadas nas versões validadas; Python 3.12 como alvo oficial |
-| Build | PyInstaller em modo one-directory |
+| Build | PyInstaller 6.21.0 em modo one-directory; artefato e smoke test aprovados |
 | FFmpeg local | `ffmpeg.exe` e `ffprobe.exe` 8.1.1 disponíveis em `bin/` e ignorados pelo Git |
 | Execução da GUI | Validada em 2026-07-28 com Python 3.12; janela `CortexFlow 3.0.4` abriu e permaneceu responsiva |
 | Dados locais | JSON, cache e logs sob `data/`; arquivos de runtime principais ignorados |
@@ -47,11 +47,12 @@ O fluxo principal está concentrado em:
 1. A cobertura de testes é pequena diante do tamanho do núcleo.
 2. `JobProcessor`, `SettingsService` e componentes da UI concentram muitas
    responsabilidades.
-3. Não há validação automática em pull requests.
-4. O build pode variar conforme versões não fixadas de Python e dependências.
-5. `app.py` substitui globalmente `subprocess.Popen` no Windows.
-6. O build one-directory ainda não possui smoke test automatizado do executável.
-7. Código de UI legado permanece dentro do pacote principal.
+3. O artefato one-directory ainda é grande devido a PyTorch, Whisper e FFmpeg.
+4. Avisos opcionais do PyInstaller precisam ser reavaliados em atualizações de
+   PyTorch, Numba ou PyInstaller.
+5. O patch global de `subprocess.Popen` continua necessário para chamadas internas
+   de Whisper e pytesseract, agora isolado e coberto por testes.
+6. Código de UI legado permanece dentro do pacote principal.
 
 ## Proteções já implantadas
 
@@ -71,10 +72,13 @@ O fluxo principal está concentrado em:
   conclusão e recuperação de contadores corrompidos.
 - Processamento de job coberto para documento novo, cache, cancelamento e erro,
   usando serviços falsos sem carregar Whisper.
-- Cobertura do núcleo (`core`, `cache`, `models`) medida em 61%, com piso de CI
+- Cobertura do núcleo (`core`, `cache`, `models`) medida em 62%, com piso de CI
   em 55%.
 - Diagnóstico seguro disponível nas configurações para FFmpeg, FFprobe,
   Tesseract, Whisper, PyTorch, modelo base e pasta de dados.
+- Subprocessos Windows configurados de forma idempotente, preservando `stdin`,
+  `startupinfo` e flags fornecidas pelo chamador.
+- Build valida executável, FFmpeg e FFprobe e executa smoke test sem abrir a GUI.
 
 ## Documentação histórica
 

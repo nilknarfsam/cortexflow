@@ -4,44 +4,12 @@ from __future__ import annotations
 
 import multiprocessing
 import os
-import subprocess
 import sys
 from pathlib import Path
 
+from src.core.windows_subprocess import configure_windowless_subprocesses
 
-def _patch_subprocess_for_windows_windowless() -> None:
-    """
-    Evita janelas CMD piscando e crash de FFmpeg/Tesseract em build windowless.
-
-    Deve rodar antes de imports que invocam subprocess (Whisper, ffmpeg, etc.).
-    """
-    if sys.platform != "win32":
-        return
-
-    _CREATE_NO_WINDOW = 0x08000000
-    _STARTF_USESHOWWINDOW = 0x00000001
-    _SW_HIDE = 0
-    _original_popen = subprocess.Popen
-
-    class _Popen(_original_popen):
-        def __init__(self, *args, **kwargs):
-            kwargs["creationflags"] = kwargs.get("creationflags", 0) | _CREATE_NO_WINDOW
-
-            startupinfo = kwargs.get("startupinfo")
-            if startupinfo is None:
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= _STARTF_USESHOWWINDOW
-                startupinfo.wShowWindow = _SW_HIDE
-                kwargs["startupinfo"] = startupinfo
-
-            if getattr(sys, "frozen", False) and "stdin" not in kwargs:
-                kwargs["stdin"] = subprocess.DEVNULL
-            super().__init__(*args, **kwargs)
-
-    subprocess.Popen = _Popen  # type: ignore[misc, assignment]
-
-
-_patch_subprocess_for_windows_windowless()
+configure_windowless_subprocesses()
 
 
 def inject_local_binaries_to_path() -> None:
@@ -70,8 +38,42 @@ def inject_local_binaries_to_path() -> None:
 
 inject_local_binaries_to_path()
 
-from src.ui.main_window import run_app
+
+def run_frozen_smoke_test() -> int:
+    """Valida imports e binários essenciais sem inicializar a interface."""
+    try:
+        import customtkinter  # noqa: F401
+        import tkinterdnd2  # noqa: F401
+        import torch  # noqa: F401
+        import whisper  # noqa: F401
+
+        if getattr(sys, "frozen", False):
+            executable_dir = Path(sys.executable).resolve().parent
+            binary_dirs = (
+                executable_dir / "bin",
+                executable_dir / "_internal" / "bin",
+            )
+            if not any(
+                (directory / "ffmpeg.exe").is_file()
+                and (directory / "ffprobe.exe").is_file()
+                for directory in binary_dirs
+            ):
+                return 2
+    except Exception:
+        return 1
+    return 0
+
+
+def main() -> int:
+    multiprocessing.freeze_support()
+    if "--smoke-test" in sys.argv:
+        return run_frozen_smoke_test()
+
+    from src.ui.main_window import run_app
+
+    run_app()
+    return 0
+
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()
-    run_app()
+    raise SystemExit(main())

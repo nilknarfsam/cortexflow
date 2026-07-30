@@ -2,6 +2,19 @@
 
 Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 
+## 2026-07-29 — Subprocessos e build Windows validados
+
+- Patch Windows isolado em módulo idempotente, preservando configurações explícitas
+  e coberto por cinco testes de regressão.
+- Executável ganhou `--smoke-test`, que valida imports e binários sem abrir a GUI.
+- Build real aprovado com PyInstaller 6.21.0, FFmpeg e FFprobe 8.1.1; artefato
+  one-directory com aproximadamente 816 MB.
+- GUI do executável abriu como `CortexFlow 3.0.4`, permaneceu responsiva e aceitou
+  encerramento normal.
+- Suíte ampliada de 57 para 63 testes; cobertura do núcleo em 62%; lint e
+  compilação aprovados.
+- Próximo passo: iniciar refatoração incremental pelo `JobProcessor`.
+
 ## 2026-07-28 — Documentação pública profissional
 
 - README reorganizado com posicionamento do produto, recursos confirmados,

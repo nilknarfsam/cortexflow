@@ -49,6 +49,28 @@ class TestAtomicWriteJson(unittest.TestCase):
             self.assertEqual(path.read_text(encoding="utf-8"), original)
             self.assertEqual(list(path.parent.glob(f".{path.name}.*.tmp")), [])
 
+    def test_transient_replace_lock_is_retried(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "state.json"
+            real_replace = __import__("os").replace
+            calls = 0
+
+            def replace_after_transient_lock(source: Path, destination: Path) -> None:
+                nonlocal calls
+                calls += 1
+                if calls == 1:
+                    raise PermissionError("arquivo temporariamente bloqueado")
+                real_replace(source, destination)
+
+            with (
+                patch("src.core.json_storage.os.replace", side_effect=replace_after_transient_lock),
+                patch("src.core.json_storage.time.sleep"),
+            ):
+                atomic_write_json(path, {"status": "ok"})
+
+            self.assertEqual(calls, 2)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"status": "ok"})
+
 
 class TestPersistentQueueRecovery(unittest.TestCase):
     def setUp(self) -> None:

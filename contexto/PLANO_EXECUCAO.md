@@ -135,6 +135,7 @@ Estado: concluída em 2026-07-28
 
 Risco: alto
 Estimativa: duas a quatro entregas
+Estado: concluída em 2026-07-29
 
 ### Trabalho
 
@@ -184,5 +185,5 @@ Depois da base:
 
 ## Próxima ação recomendada
 
-Iniciar a Etapa 5 caracterizando com testes o patch global de subprocessos antes
-de decidir se ele pode ser localizado ou deve permanecer global.
+Iniciar a Etapa 6 medindo responsabilidades e definindo a primeira extração pequena
+do `JobProcessor`, protegida pelos testes atuais.

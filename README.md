@@ -152,8 +152,9 @@ python -m pip install -r requirements-build.txt
 .\scripts\build_onedir.ps1
 ```
 
-O artefato é criado em `dist/CortexFlow/`. Esta etapa será fortalecida com um teste
-automatizado de inicialização do executável.
+O artefato é criado em `dist/CortexFlow/`. No final do script, os binários
+obrigatórios são conferidos e `CortexFlow.exe --smoke-test` valida os imports
+essenciais sem abrir a interface.
 
 ## Arquitetura
 
