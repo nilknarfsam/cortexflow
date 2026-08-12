@@ -12,13 +12,11 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Criado o script **`setup_and_run.bat`** (ASCII puro) para permitirem a novos usuários e desenvolvedores testarem o repositório com **1-Clique direto pelo terminal**:
-  - Verificação automatizada do `.NET 9 SDK` e `FFmpeg`.
-  - Restauração automática de dependências **NuGet** (`dotnet restore`).
-  - Execução da suíte de 15 testes automatizados `xUnit` (`dotnet test`).
-  - Inicialização do aplicativo diretamente do código-fonte (`dotnet run`) sem precisar de IDE ou de compilar um `.exe`.
-- Atualizado o **[`README.md`](file:///c:/src/projects/cortexflow/README.md)** com instruções completas do `setup_and_run.bat` e `run_app.bat`.
+- **Corrigida a Estilização XAML da Menu Bar:** Adicionado estilo de `MenuItem` (`Background="#1E293B"`, `Foreground="#F8FAFC"`, highlight `#0EA5E9`), tornando os submenus (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`) 100% legíveis e contrastantes no modo escuro.
+- **Remoção Completa do Código Legado Python:** Removida a pasta `legacy_python/` (código totalmente extraído e substituído por C# .NET 9).
+- **Atualização do GitHub Actions CI/CD:** `.github/workflows/quality.yml` simplificado para executar 100% em .NET 9 SDK (Restore, Release Build, xUnit).
 - 15 testes xUnit aprovados e solução .NET 9 compilando 100% verde em modo Release.
+
 
 
 

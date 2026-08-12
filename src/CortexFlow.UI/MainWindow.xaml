@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="CortexFlow 4.0 - Transcritor &amp; Extrator Profissional Local" Height="820" Width="1200"
+        Title="CortexFlow 4.0 - Transcritor &amp; Extrator Profissional Local" Height="840" Width="1220"
         WindowStartupLocation="CenterScreen"
         Background="#0F172A" Foreground="#F8FAFC"
         AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
@@ -20,7 +20,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
         </Style>
 
-        <!-- Estilo do Menu Bar -->
+        <!-- Estilo da Menu Bar Nativa e Submenus em Dark Mode -->
         <Style TargetType="Menu">
             <Setter Property="Background" Value="#1E293B"/>
             <Setter Property="Foreground" Value="#F8FAFC"/>
@@ -28,8 +28,25 @@
         </Style>
 
         <Style TargetType="MenuItem">
+            <Setter Property="Background" Value="#1E293B"/>
             <Setter Property="Foreground" Value="#F8FAFC"/>
-            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#0EA5E9"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#64748B"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Estilo do Separador no Menu -->
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="#334155"/>
+            <Setter Property="Margin" Value="0,4"/>
         </Style>
     </Window.Resources>
 
@@ -47,9 +64,9 @@
             <MenuItem Header="_Arquivo">
                 <MenuItem Header="➕ Adicionar Arquivos..." Click="SelectFiles_Click" InputGestureText="Ctrl+O"/>
                 <MenuItem Header="📁 Adicionar Pasta Inteira..." Click="SelectFolder_Click" InputGestureText="Ctrl+F"/>
-                <Separator Background="#334155"/>
+                <Separator/>
                 <MenuItem Header="🗑️ Limpar Toda a Fila" Click="ClearQueue_Click"/>
-                <Separator Background="#334155"/>
+                <Separator/>
                 <MenuItem Header="🚪 Sair" Click="ExitMenu_Click" InputGestureText="Alt+F4"/>
             </MenuItem>
             
@@ -65,13 +82,13 @@
             <MenuItem Header="A_juda">
                 <MenuItem Header="📖 Documentação do CortexFlow" Click="DocumentationMenu_Click"/>
                 <MenuItem Header="🌐 Repositório GitHub" Click="GitHubMenu_Click"/>
-                <Separator Background="#334155"/>
+                <Separator/>
                 <MenuItem Header="ℹ️ Sobre o CortexFlow" Click="AboutMenu_Click"/>
             </MenuItem>
         </Menu>
 
         <!-- 1. BARRA DE FERRAMENTAS PRINCIPAL (MAIN ACTION TOOLBAR) -->
-        <Border Grid.Row="1" Background="#1E293B" Padding="12,8" Margin="0,0,0,10">
+        <Border Grid.Row="1" Background="#1E293B" Padding="15,10" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -79,15 +96,15 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="➕ Adicionar Arquivos..." Click="SelectFiles_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="14,8" Margin="0,0,8,0" BorderThickness="0"/>
-                    <Button Content="📁 Adicionar Pasta..." Click="SelectFolder_Click" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="14,8" Margin="0,0,8,0" BorderThickness="0"/>
-                    <Button Content="🗑️ Remover Selecionado" Click="RemoveSelected_Click" Background="#475569" Foreground="White" Padding="12,8" Margin="0,0,8,0" BorderThickness="0"/>
-                    <Button Content="⚙️ Configurações" Click="OpenSettings_Click" Background="#334155" Foreground="White" Padding="12,8" Margin="0,0,8,0" BorderThickness="0"/>
+                    <Button Content="➕ Adicionar Arquivos..." Click="SelectFiles_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+                    <Button Content="📁 Adicionar Pasta..." Click="SelectFolder_Click" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+                    <Button Content="🗑️ Remover Selecionado" Click="RemoveSelected_Click" Background="#475569" Foreground="White" Padding="12,8" Margin="0,0,10,0" BorderThickness="0"/>
+                    <Button Content="⚙️ Configurações" Click="OpenSettings_Click" Background="#334155" Foreground="White" Padding="12,8" Margin="0,0,10,0" BorderThickness="0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="⏹️ Cancelar" Click="CancelQueue_Click" Background="#EF4444" Foreground="White" Padding="14,8" Margin="0,0,8,0" BorderThickness="0"/>
-                    <Button Content="▶️ Iniciar Transcrição &amp; Extração" Click="StartQueue_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="18,8" BorderThickness="0"/>
+                    <Button Content="⏹️ Cancelar" Click="CancelQueue_Click" Background="#EF4444" Foreground="White" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+                    <Button Content="▶️ Iniciar Transcrição &amp; Extração" Click="StartQueue_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="20,8" BorderThickness="0"/>
                 </StackPanel>
             </Grid>
         </Border>

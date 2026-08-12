@@ -1,2 +1,0 @@
-# Dependências validadas para gerar o executável desktop one-directory.
-pyinstaller==6.21.0

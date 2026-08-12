@@ -18,16 +18,18 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 |---|---|
 | Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 / WPF Fluent |
 | Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure`, `CortexFlow.UI` e `CortexFlow.Core.Tests` |
+| Estilo Dark Mode dos Menus | Estilização XAML explícita de `MenuItem` (`Background="#1E293B" Foreground="#F8FAFC"` e highlight `#0EA5E9`), garantindo legibilidade perfeita de 100% |
+| Remoção de Código Legado | Removida a pasta `legacy_python/` (código migrado 100% para .NET 9 C#) |
 | Script 1-Clique Terminal | `setup_and_run.bat` verifica .NET 9 SDK, FFmpeg, restaura pacotes NuGet, executa os 15 testes xUnit e inicia o app diretamente pelo terminal |
-| Interface Gráfica Profissional | `MainWindow.xaml` no **estilo Conversor de Mídia Studio (85% DataGrid)** com Menu Bar nativa (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`), Toolbar de atalhos, StatusBar dinâmica e rodapé de presets |
+| Interface Gráfica Profissional | `MainWindow.xaml` no **estilo Conversor de Mídia Studio (85% DataGrid)** com Menu Bar nativa, Toolbar de atalhos, StatusBar dinâmica e rodapé de presets |
 | Atalho de Execução | `run_app.bat` (ASCII puro) com rebuild automático a cada execução |
 | Tradução Automática | Suporte nativo ao `.WithTranslate()` do `Whisper.net` via checkbox **`TranslateCheck`** |
-| GitHub Actions CI/CD | Pipeline `.github/workflows/quality.yml` atualizado para **.NET 9 (Restore, Build Release, xUnit)** + Job de compatibilidade para `legacy_python/` |
+| GitHub Actions CI/CD | Pipeline `.github/workflows/quality.yml` atualizado para **100% .NET 9 (Restore, Build Release, xUnit)** |
 | Pré-processador de Mídia | **`AudioPreProcessor` (FFmpeg)** converte automaticamente qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) para WAV 16kHz mono |
 | Opções de Exportação | Salvar na pasta de origem ou pasta customizada nos formatos **.md, .txt, .json e .pdf** |
 | Executável Compilado | `CortexFlow.UI.exe` gerado e testado via `run_app.bat` |
 | Testes C# | **15 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 79ms) |
-| Base Legada | Python 3.12 mantido em `legacy_python/` com 63 testes `unittest` verdes |
+
 
 
 
