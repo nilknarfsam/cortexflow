@@ -18,17 +18,18 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 |---|---|
 | Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 / WPF Fluent |
 | Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure`, `CortexFlow.UI` e `CortexFlow.Core.Tests` |
-| Formatação de Transcrição | Novo modo **`Time Blocks (Blocos de Tempo de 30s)`** (`### ⏱️ [MM:SS - MM:SS]`) + parágrafos formatados legíveis no modo `Clean` |
+| Player de Mídia Sincronizado | **`ResultWindow.xaml`** equipada com Player Windows Media Foundation (WMF) integrado, botão **`▶ Pular p/ Ponto`** em cada segmento de timestamp e suporte a streaming Direct3D |
+| Formatação de Transcrição | Modo **`Time Blocks (Blocos de Tempo de 30s)`** (`### ⏱️ [MM:SS - MM:SS]`) + parágrafos formatados no modo `Clean` |
 | Manual do Usuário (XAML) | **`HelpWindow.xaml`** (F1) com 5 abas intuitivas: Início Rápido, Predefinições, Modelos Whisper, Atalhos de Teclado, Privacidade & 5S |
-| Diretrizes de Qualidade | Criado o documento `docs/DESENVOLVIMENTO_5S_KPIS_SEGURANCA.md` alinhado à filosofia 5S, KPIs e segurança de dados |
+| Diretrizes de Qualidade | Documento `docs/DESENVOLVIMENTO_5S_KPIS_SEGURANCA.md` cobrindo 5S, KPIs e matriz de risco de performance |
 | Estilo Dark Mode dos Menus | Estilização XAML de `MenuItem` (`Background="#1E293B" Foreground="#F8FAFC"` e highlight `#0EA5E9`), 100% legível |
 | Interface Gráfica Profissional | `MainWindow.xaml` no **estilo Conversor de Mídia Studio (85% DataGrid)** com Menu Bar nativa, Toolbar de atalhos, StatusBar dinâmica e rodapé de presets |
 | Atalho de Execução | `run_app.bat` e `setup_and_run.bat` (ASCII puro) com rebuild automático a cada execução |
 | Tradução Automática | Suporte nativo ao `.WithTranslate()` do `Whisper.net` via checkbox **`TranslateCheck`** |
 | GitHub Actions CI/CD | Pipeline `.github/workflows/quality.yml` atualizado para **100% .NET 9 (Restore, Build Release, xUnit)** |
 | Pré-processador de Mídia | **`AudioPreProcessor` (FFmpeg)** converte automaticamente qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) para WAV 16kHz mono |
-| Opções de Exportação | Salvar na pasta de origem ou pasta customizada nos formatos **.md, .txt, .json e .pdf** |
 | Testes C# | **16 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 80ms) |
+
 
 
 

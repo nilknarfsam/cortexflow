@@ -12,14 +12,14 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
+- **Implementado Player de Mídia Sincronizado com Timestamps (`ResultWindow.xaml`):**
+  - Integrado o elemento `MediaElement` (Windows Media Foundation nativo via Direct3D) na janela visualizadora de resultados.
+  - Adicionado o botão **`▶ Pular p/ Ponto`** na tabela de linha do tempo, permitindo saltar e reproduzir o áudio/vídeo instantaneamente a partir de qualquer segmento de tempo da transcrição.
+  - Adicionado painel de controles com slider de progresso e botões Play/Pause/Stop.
 - **Melhoria da Formatação de Transcrição (Blocos de Tempo & Parágrafos Legíveis):**
-  - Implementado no `ExportService.cs` o novo modo **`Time Blocks (Blocos de Tempo de 30s)`**, organizando a fala em intervalos marcados `### ⏱️ [00:00 - 00:30]`.
-  - Aprimorados os parágrafos do modo `Clean` para evitar blocos maciços de texto.
-- **Manual do Usuário em XAML (`HelpWindow.xaml`):**
-  - Modal intuitivo com 5 abas acessível pelo menu `Ajuda -> Documentação` ou pela tecla **`F1`**: Início Rápido, Predefinições & Formatos, Desempenho de Modelos Whisper, Atalhos de Teclado, Privacidade & 5S.
-- **Diretrizes 5S, KPIs e Segurança de Dados:**
-  - Criado o documento `docs/DESENVOLVIMENTO_5S_KPIS_SEGURANCA.md` cobrindo os 5 sensos em desenvolvimento de software, KPIs de performance (RTF <= 0.15x em GPU), consumo de memória e compromisso de dados 100% locais.
+  - Modo `Time Blocks (30s)` (`### ⏱️ [00:00 - 00:30]`) e `HelpWindow.xaml` (F1).
 - 16 testes automatizados xUnit aprovados em 80ms.
+
 - **Corrigida a Estilização XAML da Menu Bar:** Adicionado estilo de `MenuItem` (`Background="#1E293B"`, `Foreground="#F8FAFC"`, highlight `#0EA5E9`), tornando os submenus (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`) 100% legíveis e contrastantes no modo escuro.
 - **Remoção Completa do Código Legado Python:** Removida a pasta `legacy_python/` (código totalmente extraído e substituído por C# .NET 9).
 - **Atualização do GitHub Actions CI/CD:** `.github/workflows/quality.yml` simplificado para executar 100% em .NET 9 SDK (Restore, Release Build, xUnit).
