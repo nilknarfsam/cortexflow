@@ -138,7 +138,7 @@
 
                     <!-- DATAGRID DA FILA (85% DA TELA) -->
                     <Border Grid.Row="1" Background="#1E293B" CornerRadius="6" Padding="6" Margin="0,0,0,8">
-                        <DataGrid x:Name="QueueDataGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#334155" RowBackground="#1E293B" AlternatingRowBackground="#0F172A" SelectionMode="Extended" FontSize="12">
+                        <DataGrid x:Name="QueueDataGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#334155" RowBackground="#1E293B" AlternatingRowBackground="#0F172A" SelectionMode="Extended" FontSize="12" MouseDoubleClick="QueueDataGrid_MouseDoubleClick">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Arquivo" Binding="{Binding FileName}" Width="2.5*"/>
                                 <DataGridTextColumn Header="Tamanho" Binding="{Binding FileSizeBytes}" Width="0.8*"/>
@@ -152,7 +152,7 @@
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Mensagem / Caminho de Saída" Binding="{Binding ErrorMessage}" Width="2.5*"/>
                                 
-                                <DataGridTemplateColumn Header="Ações" Width="1.4*">
+                                <DataGridTemplateColumn Header="Ações" Width="1.2*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -261,17 +261,19 @@
 
                             <StackPanel>
                                 <TextBlock x:Name="PlayerMediaTitle" Text="📄 Nenhuma mídia selecionada na fila" FontSize="16" FontWeight="Bold" Foreground="#38BDF8"/>
-                                <TextBlock x:Name="PlayerMediaSubtitle" Text="Selecione um item concluído na fila e clique em '👁️ Ver no Player'" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                                <TextBlock x:Name="PlayerMediaSubtitle" Text="Clique duplo em uma linha da tabela ou dê clique simples para pular a mídia diretamente no ponto." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- BOTÃO FLUTUANTE DE RE-SINCRONISMO DINÂMICO -->
+                                <Button x:Name="SyncButton" Content="🎯 Sincronizar com Vídeo" Click="SyncButton_Click" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Rolar e selecionar o trecho exato sendo falado agora no áudio/vídeo"/>
                                 <Button Content="📋 Copiar Texto" Click="CopyPlayerText_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0"/>
                                 <Button Content="📁 Pasta de Saída" Click="OpenExportFolder_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="12,6" BorderThickness="0"/>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- PAINEL DIVIDIDO: ESQUERDA (TEXTO/TIMESTAMPS) + DIREITA (PLAYER) -->
+                    <!-- PAINEL DIVIDIDO: ESQUERDA (TEXTO/TIMESTAMPS LIMPOS) + DIREITA (PLAYER) -->
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1.3*"/>
@@ -279,25 +281,30 @@
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- ESQUERDA: TRANSCRIÇÃO & TIMESTAMPS -->
+                        <!-- ESQUERDA: TRANSCRIÇÃO & TIMESTAMPS SEM BOTÕES POLUÍDOS (CLIQUE DUPLO SELECIONA) -->
                         <TabControl Grid.Column="0" Background="#1E293B" Foreground="#F8FAFC" BorderThickness="0">
                             <TabItem Header="📖 Transcrição Formatada">
                                 <TextBox x:Name="PlayerResultTextBox" Background="#0F172A" Foreground="#F8FAFC" FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Margin="6"/>
                             </TabItem>
 
-                            <TabItem Header="⏱️ Linha do Tempo &amp; Saltos">
-                                <DataGrid x:Name="PlayerTimestampsGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" RowBackground="#1E293B" AlternatingRowBackground="#0F172A" Margin="6">
+                            <TabItem Header="⏱️ Linha do Tempo (Clique Duplo para Tocar)">
+                                <DataGrid x:Name="PlayerTimestampsGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" RowBackground="#1E293B" AlternatingRowBackground="#0F172A" Margin="6" MouseDoubleClick="PlayerTimestampsGrid_MouseDoubleClick" SelectionChanged="PlayerTimestampsGrid_SelectionChanged">
+                                    <DataGrid.Resources>
+                                        <!-- ESTILO DE DESTAQUE DA LINHA EM REPRODUÇÃO ATIVA -->
+                                        <Style TargetType="DataGridRow">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#0284C7"/>
+                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Início" Binding="{Binding Start, StringFormat=\{0:mm\\:ss\}}" Width="0.8*"/>
-                                        <DataGridTextColumn Header="Fim" Binding="{Binding End, StringFormat=\{0:mm\\:ss\}}" Width="0.8*"/>
-                                        <DataGridTextColumn Header="Texto Transcrito" Binding="{Binding Text}" Width="3*"/>
-                                        <DataGridTemplateColumn Header="Tocar Mídia" Width="1.3*">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <Button Content="▶ Pular p/ Ponto" Click="JumpToTimestamp_Click" Tag="{Binding}" Background="#0EA5E9" Foreground="White" Padding="8,3" FontSize="11" FontWeight="Bold"/>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="Início" Binding="{Binding Start, StringFormat=\{0:mm\\:ss\}}" Width="0.9*"/>
+                                        <DataGridTextColumn Header="Fim" Binding="{Binding End, StringFormat=\{0:mm\\:ss\}}" Width="0.9*"/>
+                                        <DataGridTextColumn Header="Texto Transcrito (Clique duplo para pular o áudio)" Binding="{Binding Text}" Width="4*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </TabItem>
@@ -315,7 +322,7 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock x:Name="PlayerStatusText" Text="🎵 Reprodução Sincronizada" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,8"/>
+                                <TextBlock x:Name="PlayerStatusText" Text="🎵 Reprodução Sincronizada em Tempo Real" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,8"/>
 
                                 <!-- MEDIA ELEMENT NATIVO WINDOWS -->
                                 <Border Grid.Row="1" Background="#000000" CornerRadius="4">
@@ -336,9 +343,9 @@
                                     </Grid>
 
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button Content="▶ Reproduzir" Click="PlayMedia_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,6,0" BorderThickness="0"/>
-                                        <Button Content="⏸ Pause" Click="PauseMedia_Click" Background="#F59E0B" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,6,0" BorderThickness="0"/>
-                                        <Button Content="⏹ Parar" Click="StopMedia_Click" Background="#EF4444" Foreground="White" Padding="12,6" BorderThickness="0"/>
+                                        <Button Content="▶ Reproduzir" Click="PlayMedia_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="14,6" Margin="0,0,6,0" BorderThickness="0"/>
+                                        <Button Content="⏸ Pause" Click="PauseMedia_Click" Background="#F59E0B" Foreground="White" FontWeight="Bold" Padding="14,6" Margin="0,0,6,0" BorderThickness="0"/>
+                                        <Button Content="⏹ Parar" Click="StopMedia_Click" Background="#EF4444" Foreground="White" Padding="14,6" BorderThickness="0"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

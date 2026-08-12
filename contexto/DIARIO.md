@@ -12,13 +12,13 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- **Reestruturação da Interface em 2 Abas Principais (Estúdio Integrado):**
-  - **Aba 1 (`🎬 1. Conversão & Fila`):** Fila principal com DataGrid (85%), barra de ferramentas e rodapé de presets.
-  - **Aba 2 (`👁️ 2. Visualizador & Player Sincronizado`):** Tela dividida integrada com visualização de texto transcrito, timestamps com botão `▶ Pular p/ Ponto` e Player MediaElement Direct3D.
-  - O clique no botão **`👁️ Ver no Player`** em qualquer item da Fila (Aba 1) alterna automaticamente para a Aba 2 e carrega a mídia e o texto instantaneamente sem abrir janelas modais separadas!
-- **Implementado Player de Mídia Sincronizado com Timestamps (`MainWindow.xaml`):**
-  - Integração nativa do `MediaElement` (Windows Media Foundation).
+- **Sincronização em Tempo Real do Vídeo com a Transcrição (`MainWindow.xaml`):**
+  - **Acompanhamento Ativo:** Conforme o áudio/vídeo roda no player, a linha exata da transcrição é automaticamente destacada e rola em tela em tempo real (`ScrollIntoView`).
+  - **Clique Duplo Intuitivo:** Removida a coluna poluída de botões repetidos. Agora basta um **clique duplo** (ou clique) em qualquer linha da tabela para saltar e reproduzir o áudio/vídeo naquele instante exato.
+  - **Botão Flutuante de Re-Sincronismo (`🎯 Sincronizar com Vídeo`):** Permite voltar a focar na posição atual caso o usuário role a tabela para ler outros trechos.
+  - Tabela limpa e 100% visível sem cortes horizontais.
 - 16 testes automatizados xUnit aprovados em 80ms.
+
 
 
 - **Corrigida a Estilização XAML da Menu Bar:** Adicionado estilo de `MenuItem` (`Background="#1E293B"`, `Foreground="#F8FAFC"`, highlight `#0EA5E9`), tornando os submenus (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`) 100% legíveis e contrastantes no modo escuro.

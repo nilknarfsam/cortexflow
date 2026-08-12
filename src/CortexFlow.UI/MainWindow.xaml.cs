@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _playerTimer;
     private string? _customExportFolder;
     private TranscriptionResult? _currentLoadedResult;
+    private bool _autoScrollSyncEnabled = true;
 
     public MainWindow()
     {
@@ -83,6 +84,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private void QueueDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (QueueDataGrid.SelectedItem is QueueItem item && item.Result != null)
+        {
+            LoadResultIntoPlayer(item.Result);
+        }
+    }
+
     private void LoadResultIntoPlayer(TranscriptionResult result)
     {
         _currentLoadedResult = result;
@@ -98,7 +107,7 @@ public partial class MainWindow : Window
             if (!string.IsNullOrWhiteSpace(result.FilePath) && File.Exists(result.FilePath))
             {
                 MainMediaPlayer.Source = new Uri(result.FilePath);
-                PlayerStatusText.Text = "🎵 Mídia Carregada e Pronta";
+                PlayerStatusText.Text = "🎵 Mídia Carregada — Clique duplo na tabela para pular";
                 PlayerStatusText.Foreground = System.Windows.Media.Brushes.MediumSeaGreen;
             }
             else
@@ -113,26 +122,57 @@ public partial class MainWindow : Window
             PlayerStatusText.Foreground = System.Windows.Media.Brushes.IndianRed;
         }
 
-        // Alterna automaticamente para a Aba 2 (Visualizador & Player Sincronizado)
+        // Alterna para a Aba 2 (Visualizador & Player Sincronizado)
         MainTabControl.SelectedItem = PlayerTab;
     }
 
-    private void JumpToTimestamp_Click(object sender, RoutedEventArgs e)
+    // CLIQUE DUPLO OU CLIQUE NA TABELA SALTA PARA O INSTANTE EXATO DA FALA
+    private void PlayerTimestampsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is TranscriptionSegment segment)
+        if (PlayerTimestampsGrid.SelectedItem is TranscriptionSegment segment)
         {
-            try
-            {
-                MainMediaPlayer.Position = segment.Start;
-                MainMediaPlayer.Play();
-                _playerTimer.Start();
-                PlayerStatusText.Text = $"▶ Reproduzindo em [{segment.Start:mm\\:ss}]";
-                PlayerStatusText.Foreground = System.Windows.Media.Brushes.LightSkyBlue;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Não foi possível reproduzir neste ponto: {ex.Message}", "CortexFlow Player", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+            JumpToSegment(segment);
+        }
+    }
+
+    private void PlayerTimestampsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+    }
+
+    private void JumpToSegment(TranscriptionSegment segment)
+    {
+        try
+        {
+            _autoScrollSyncEnabled = true;
+            MainMediaPlayer.Position = segment.Start;
+            MainMediaPlayer.Play();
+            _playerTimer.Start();
+            PlayerStatusText.Text = $"▶ Reproduzindo em [{segment.Start:mm\\:ss}]";
+            PlayerStatusText.Foreground = System.Windows.Media.Brushes.LightSkyBlue;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Não foi possível reproduzir neste ponto: {ex.Message}", "CortexFlow Player", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void SyncButton_Click(object sender, RoutedEventArgs e)
+    {
+        _autoScrollSyncEnabled = true;
+        SyncCurrentSegmentToVideo();
+    }
+
+    private void SyncCurrentSegmentToVideo()
+    {
+        if (_currentLoadedResult?.Segments == null || !MainMediaPlayer.NaturalDuration.HasTimeSpan) return;
+
+        var pos = MainMediaPlayer.Position;
+        var activeSegment = _currentLoadedResult.Segments.FirstOrDefault(s => s.Start <= pos && pos <= s.End);
+
+        if (activeSegment != null)
+        {
+            PlayerTimestampsGrid.SelectedItem = activeSegment;
+            PlayerTimestampsGrid.ScrollIntoView(activeSegment);
         }
     }
 
@@ -193,12 +233,18 @@ public partial class MainWindow : Window
         PlayerStatusText.Foreground = System.Windows.Media.Brushes.IndianRed;
     }
 
+    // TIMER EM TEMPO REAL: DESTACA E ROLA A TABELA AUTOMATICAMENTE CONFORME O VÍDEO RODA
     private void PlayerTimer_Tick(object? sender, EventArgs e)
     {
         if (MainMediaPlayer.NaturalDuration.HasTimeSpan)
         {
             TimelineSlider.Value = MainMediaPlayer.Position.TotalSeconds;
             CurrentTimeText.Text = $"{MainMediaPlayer.Position:mm\\:ss}";
+
+            if (_autoScrollSyncEnabled)
+            {
+                SyncCurrentSegmentToVideo();
+            }
         }
     }
 
