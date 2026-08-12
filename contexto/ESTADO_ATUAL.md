@@ -16,12 +16,13 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 
 | Indicador | Estado em 2026-08-12 |
 |---|---|
-| Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 |
-| Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure` e `CortexFlow.Core.Tests` |
+| Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 / WPF Fluent |
+| Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure`, `CortexFlow.UI` e `CortexFlow.Core.Tests` |
+| Interface Gráfica | `CortexFlow.UI` (MainWindow.xaml) nativa com Drag-and-Drop, seleção de modelos, idiomas, modos e DataGrid de fila |
+| Executável Compilado | `CortexFlow.UI.exe` gerado em `src/CortexFlow.UI/bin/Debug/net9.0-windows/` |
 | Testes C# | 6 testes `xUnit` aprovados em `CortexFlow.Core.Tests` (100% OK) |
-| Infraestrutura C# | `WhisperTranscriptionService` (`Whisper.net`), `DocumentExtractorService` (`PdfPig`/`OpenXml`), `WindowsOcrService` |
-| Apresentação C# | `MainViewModel` (MVVM) integrado com a fila assíncrona |
 | Base Legada | Python 3.12 mantido em `legacy_python/` com 63 testes `unittest` verdes |
+
 
 
 

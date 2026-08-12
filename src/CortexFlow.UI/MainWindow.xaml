@@ -1,0 +1,127 @@
+<Window x:Class="CortexFlow.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="CortexFlow 4.0 - Transcritor &amp; Extrator Profissional Local" Height="750" Width="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F172A" Foreground="#F8FAFC"
+        AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- CABEÇALHO -->
+        <Border Grid.Row="0" Background="#1E293B" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="⚡ CortexFlow" FontSize="22" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                    <TextBlock Text="v4.0 (.NET 9 / WinUI 3 Engine)" FontSize="12" Foreground="#94A3B8" Margin="15,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border Background="#059669" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
+                        <TextBlock Text="🔒 100% Processamento Local" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ÁREA DE ARRASTAR E SOLTAR + CONFIGURAÇÕES -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- DROP ZONE -->
+            <Border Grid.Column="0" Background="#1E293B" BorderBrush="#38BDF8" BorderThickness="2" CornerRadius="8" Padding="20" Margin="0,0,10,0">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="📁 Arraste e solte arquivos aqui" FontSize="18" FontWeight="SemiBold" Foreground="#F1F5F9" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Suporta Áudio (.mp3, .wav), Vídeo (.mp4, .mkv), Documentos (.pdf, .docx, .txt) e Imagens" FontSize="12" Foreground="#94A3B8" Margin="0,5,0,15" HorizontalAlignment="Center"/>
+                    <Button Content="➕ Selecionar Arquivos..." Click="SelectFiles_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="15,8" BorderThickness="0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- PAINEL DE CONFIGURAÇÕES -->
+            <Border Grid.Column="1" Background="#1E293B" CornerRadius="8" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="⚙️ Configurações do Job" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,10"/>
+                    
+                    <TextBlock Text="Modelo Whisper:" FontSize="11" Foreground="#94A3B8" Margin="0,5,0,2"/>
+                    <ComboBox x:Name="ModelCombo" SelectedIndex="1" Margin="0,0,0,8">
+                        <ComboBoxItem Content="tiny (Ultra-Rápido)"/>
+                        <ComboBoxItem Content="base (Recomendado)"/>
+                        <ComboBoxItem Content="small (Maior Precisão)"/>
+                        <ComboBoxItem Content="medium (Alta Precisão)"/>
+                        <ComboBoxItem Content="large-v3 (Máxima Precisão)"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Idioma:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2"/>
+                    <ComboBox x:Name="LanguageCombo" SelectedIndex="0" Margin="0,0,0,8">
+                        <ComboBoxItem Content="Português (pt)"/>
+                        <ComboBoxItem Content="Inglês (en)"/>
+                        <ComboBoxItem Content="Espanhol (es)"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Modo de Estruturação:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2"/>
+                    <ComboBox x:Name="StructuringCombo" SelectedIndex="0" Margin="0,0,0,8">
+                        <ComboBoxItem Content="Clean (Limpo)"/>
+                        <ComboBoxItem Content="AI Ready (Otimizado para LLMs)"/>
+                        <ComboBoxItem Content="NotebookLM (Fontes para IA)"/>
+                        <ComboBoxItem Content="Study Mode (Guia de Estudos)"/>
+                        <ComboBoxItem Content="Raw (Texto Bruto)"/>
+                    </ComboBox>
+
+                    <CheckBox x:Name="CacheCheck" Content="Usar Cache por Conteúdo (SHA-256)" IsChecked="True" Foreground="#F1F5F9" FontSize="11" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- TABELA DE FILA DE PROCESSAMENTO -->
+        <Border Grid.Row="2" Background="#1E293B" CornerRadius="8" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" Margin="5,0,0,10">
+                    <TextBlock Text="📋 Fila de Transcrição e Extração" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC"/>
+                </StackPanel>
+
+                <DataGrid Grid.Row="1" x:Name="QueueDataGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" GridLinesVisibility="None" RowBackground="#1E293B" AlternatingRowBackground="#0F172A">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Arquivo" Binding="{Binding FileName}" Width="2*"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="1*"/>
+                        <DataGridTemplateColumn Header="Progresso" Width="2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" Minimum="0" Maximum="1" Height="12" Margin="5"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Erro/Mensagem" Binding="{Binding ErrorMessage}" Width="2*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- BARRA DE AÇÕES INFERIOR -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="🗑️ Limpar Fila" Click="ClearQueue_Click" Background="#475569" Foreground="White" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+            <Button Content="⏹️ Cancelar" Click="CancelQueue_Click" Background="#EF4444" Foreground="White" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+            <Button Content="▶️ Iniciar Transcrição &amp; Extração" Click="StartQueue_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="20,8" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>

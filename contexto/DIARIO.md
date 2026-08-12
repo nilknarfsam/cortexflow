@@ -12,7 +12,10 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Expandida a suíte de testes em xUnit para 6 testes automatizados aprovados (100% OK).
+- Implementado o projeto `CortexFlow.UI` com a interface desktop nativa em C# / XAML (`MainWindow.xaml`).
+- Adicionado suporte a Drag-and-Drop de arquivos, seletor visual de modelos Whisper (`tiny`, `base`, `small`, `medium`, `large-v3`), idiomas (`pt`, `en`, `es`), modos de estruturação (`Clean`, `AI Ready`, `NotebookLM`, `Study Mode`, `Raw`) e tabela em tempo real com barra de progresso.
+- Solução .NET 9 compilando 100% com sucesso (`CortexFlow.UI.exe` gerado).
+
 
 - Criado o guia reutilizável `docs/GUIAMAESTRO_AVALIACAO_TECNOLOGICA.md` para avaliação de stack em futuros projetos.
 - Registrada a decisão DEC-003.
