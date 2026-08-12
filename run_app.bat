@@ -2,23 +2,20 @@
 title CortexFlow 4.0 - Executador Desktop
 
 echo ========================================================
-echo   CortexFlow 4.0 (.NET 9 / WinUI 3)
+echo   CortexFlow 4.0 (.NET 9 / WinUI 3 Engine)
 echo ========================================================
 echo.
 
-set EXE_PATH=src\CortexFlow.UI\bin\Debug\net9.0-windows\CortexFlow.UI.exe
+echo Compilando o projeto CortexFlow...
+dotnet build --configuration Debug --nologo
 
-if not exist "%EXE_PATH%" (
-    echo Compilando a solucao .NET 9 pela primeira vez...
-    dotnet build
+if %ERRORLEVEL% NEQ 0 (
     echo.
+    echo [ERRO] Falha na compilacao do projeto.
+    pause
+    exit /b %ERRORLEVEL%
 )
 
-if exist "%EXE_PATH%" (
-    echo Abrindo o CortexFlow...
-    start "" "%EXE_PATH%"
-) else (
-    echo [ERRO] Nao foi possivel compilar ou encontrar o executavel.
-    echo Certifique-se de que o .NET 9 SDK esta instalado.
-    pause
-)
+echo.
+echo Abrindo o CortexFlow...
+start "" "src\CortexFlow.UI\bin\Debug\net9.0-windows\CortexFlow.UI.exe"

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -30,6 +31,25 @@ public partial class MainWindow : Window
         _viewModel = new MainViewModel(queueManager);
         DataContext = _viewModel;
         QueueDataGrid.ItemsSource = _viewModel.QueueItems;
+
+        _viewModel.QueueItems.CollectionChanged += (s, e) => UpdateStatusBar();
+        UpdateStatusBar();
+    }
+
+    private void UpdateStatusBar()
+    {
+        var count = _viewModel.QueueItems.Count;
+        if (count == 0)
+        {
+            StatusItemCountText.Content = "Fila vazia. Arraste mídias ou clique em + Adicionar Arquivos.";
+        }
+        else
+        {
+            var completed = _viewModel.QueueItems.Count(i => i.Status == QueueItemStatus.Completed);
+            var processing = _viewModel.QueueItems.Count(i => i.Status == QueueItemStatus.Processing);
+            var queued = _viewModel.QueueItems.Count(i => i.Status == QueueItemStatus.Queued);
+            StatusItemCountText.Content = $"Fila: {count} itens | Concluídos: {completed} | Em Processamento: {processing} | Na Fila: {queued}";
+        }
     }
 
     private void SelectFiles_Click(object sender, RoutedEventArgs e)
@@ -114,6 +134,35 @@ public partial class MainWindow : Window
             Owner = this
         };
         settingsWin.ShowDialog();
+    }
+
+    private async void ClearCacheMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show("Deseja apagar todo o cache SHA-256 de transcrições?", "CortexFlow", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+        {
+            await _cacheService.ClearCacheAsync();
+            MessageBox.Show("Cache limpo com sucesso!", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void ExitMenu_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void DocumentationMenu_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://github.com/nilknarfsam/cortexflow#readme") { UseShellExecute = true }); } catch { }
+    }
+
+    private void GitHubMenu_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://github.com/nilknarfsam/cortexflow") { UseShellExecute = true }); } catch { }
+    }
+
+    private void AboutMenu_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show("CortexFlow v4.0 (.NET 9 / WinUI 3 Engine)\n\nTranscritor e Extrator Profissional 100% Local e Offline.\nAutor: Francklin Campos (nilknarfsam)\nLicença: MIT License", "Sobre o CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void ViewResult_Click(object sender, RoutedEventArgs e)

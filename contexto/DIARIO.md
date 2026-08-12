@@ -12,11 +12,15 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Implementado o suporte a **Tradução Automática de Idiomas (`.WithTranslate()`)** no `WhisperTranscriptionService.cs` e integrado ao checkbox **`TranslateCheck`** na `MainWindow.xaml`.
-- Auditado e reestruturado o pipeline do GitHub Actions em **`.github/workflows/quality.yml`**:
-  - Criado o Job principal **`dotnet-quality`** com .NET 9 SDK (Restore, Build Release, Execução dos 15 testes xUnit).
-  - Criado o Job secundário **`legacy-python-quality`** para manter os testes do protótipo legado em `legacy_python/` sem quebrar o pipeline por falta do `requirements.txt` na raiz.
-- 15 testes xUnit aprovados e compilação em modo Release validada sem erros.
+- Concluído o **Redesenho de Nível Profissional do CortexFlow 4.0** baseado no benchmark dos conversores de mídia Studio (HandBrake / Adobe Media Encoder):
+  - Adicionada Menu Bar nativa com menus `Arquivo`, `Ferramentas`, `Exibir` e `Ajuda`.
+  - Adicionada Main Toolbar com botões estilizados para atalhos frequentes.
+  - Tabela de Fila (`DataGrid`) expandida para ocupar **85% da tela principal** com alto contraste (`#FFFFFF` em fundo `#1E293B`).
+  - Painel de Predefinições e opções de exportação reorganizados em um rodapé compacto.
+  - Adicionada `StatusBar` inferior dinâmica com contagem de itens e status do acelerador local.
+  - Atualizado o `run_app.bat` para forçar sempre a compilação (`dotnet build`) e refletir instantaneamente alterações visuais.
+- 15 testes xUnit aprovados e solução .NET 9 compilando 100% verde em modo Release.
+
 
 
 
