@@ -12,14 +12,12 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Implementado o **`AudioPreProcessor.cs`** via FFmpeg (`CliWrap`) para pré-processar e converter automaticamente qualquer arquivo de áudio/vídeo (`.mp4`, `.mp3`, `.mkv`) em WAV PCM 16kHz mono, eliminando 100% o erro *Invalid wave file RIFF header*.
-- Redesenhada a `MainWindow.xaml` no **estilo Conversor de Mídia Profissional**:
-  - Barra de Ferramentas Superior compacta com `➕ Adicionar Arquivos`, `📁 Adicionar Pasta Inteira`, `🗑️ Remover Selecionados`.
-  - Tabela de Fila de Transcrição expandida com cabeçalho de alto contraste (`#FFFFFF` em fundo `#1E293B`).
-  - Adicionada coluna de Ações por linha com botão `❌` para remover o item específico da fila e `👁️` para ver o resultado.
-  - Adicionada a opção `"Salvar na mesma pasta do arquivo de origem"` (marcada por padrão) + opção de pasta customizada.
-- Atualizado o `.gitignore` para ignorar mídias e vídeos de teste (`*.mp4`, `*.mp3`, `teste.mp4`).
-- Suíte de testes xUnit expandida para **15 testes automatizados aprovados (100% OK em 79ms)**.
+- Auditado e reestruturado o pipeline do GitHub Actions em **`.github/workflows/quality.yml`**:
+  - Criado o Job principal **`dotnet-quality`** com .NET 9 SDK (Restore, Build Release, Execução dos 15 testes xUnit).
+  - Criado o Job secundário **`legacy-python-quality`** para manter os testes do protótipo legado em `legacy_python/` sem quebrar o pipeline por falta do `requirements.txt` na raiz.
+  - Corrigido o erro de compilação de atributo XAML invalidado e validadas as builds localmente antes do push.
+- 15 testes xUnit aprovados e pipeline GitHub Actions reativado com sucesso para a arquitetura .NET 9.
+
 
 
 
