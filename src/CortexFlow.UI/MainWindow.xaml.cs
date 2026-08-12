@@ -14,6 +14,7 @@ namespace CortexFlow.UI;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
+    private string? _customExportFolder;
 
     public MainWindow()
     {
@@ -44,6 +45,20 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SelectExportFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Selecionar Pasta de Saída dos Arquivos Exportados"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            _customExportFolder = dialog.FolderName;
+            ExportPathText.Text = _customExportFolder;
+        }
+    }
+
     private void Window_DragOver(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -71,16 +86,29 @@ public partial class MainWindow : Window
 
     private async void StartQueue_Click(object sender, RoutedEventArgs e)
     {
-        // Atualiza configurações selecionadas
+        // 1. Modelo Whisper
         var selectedModel = (ModelCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content.ToString() ?? "base";
         _viewModel.Settings.ModelSize = selectedModel.Split(' ')[0];
 
+        // 2. Idioma
         var selectedLang = (LanguageCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content.ToString() ?? "pt";
         _viewModel.Settings.Language = selectedLang.Contains("pt") ? "pt" : (selectedLang.Contains("en") ? "en" : "es");
 
+        // 3. Modo de Estruturação
         var selectedMode = (StructuringCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content.ToString() ?? "Clean";
         _viewModel.Settings.StructuringMode = selectedMode.Split(' ')[0];
 
+        // 4. Formato de Exportação
+        var selectedFormat = (FormatCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content.ToString() ?? "md";
+        _viewModel.Settings.ExportFormat = selectedFormat.Contains("pdf") ? "pdf" : (selectedFormat.Contains("json") ? "json" : (selectedFormat.Contains("txt") ? "txt" : "md"));
+
+        // 5. Pasta de Exportação
+        if (!string.IsNullOrWhiteSpace(_customExportFolder))
+        {
+            _viewModel.Settings.ExportDirectory = _customExportFolder;
+        }
+
+        // 6. Cache
         _viewModel.Settings.EnableCache = CacheCheck.IsChecked ?? true;
 
         await _viewModel.StartQueueAsync();

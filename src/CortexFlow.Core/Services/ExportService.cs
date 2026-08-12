@@ -22,30 +22,32 @@ public class ExportService : IExportService
         }
 
         var baseFileName = Path.GetFileNameWithoutExtension(result.FilePath);
-        var extension = settings.ExportFormat.ToLowerInvariant() switch
+        var fmt = settings.ExportFormat.ToLowerInvariant();
+        var extension = fmt switch
         {
             "json" => ".json",
             "txt" => ".txt",
+            "pdf" => ".pdf",
             _ => ".md"
         };
 
         var outputPath = Path.Combine(outputDir, $"{baseFileName}_{settings.StructuringMode.ToLowerInvariant()}{extension}");
 
-        string content;
         if (extension == ".json")
         {
-            content = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(outputPath, json, Encoding.UTF8);
         }
         else
         {
-            content = FormatTextContent(result, settings.StructuringMode);
+            var textContent = FormatTextContent(result, settings.StructuringMode);
+            await File.WriteAllTextAsync(outputPath, textContent, Encoding.UTF8);
         }
 
-        await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8);
         return outputPath;
     }
 
-    private static string FormatTextContent(TranscriptionResult result, string mode)
+    public static string FormatTextContent(TranscriptionResult result, string mode)
     {
         var sb = new StringBuilder();
 
@@ -64,9 +66,12 @@ public class ExportService : IExportService
                 sb.AppendLine(result.FullText);
                 sb.AppendLine();
                 sb.AppendLine("## Linha do Tempo (Timestamps)");
-                foreach (var seg in result.Segments)
+                if (result.Segments != null)
                 {
-                    sb.AppendLine($"[{seg.Start:mm\\:ss} - {seg.End:mm\\:ss}] {seg.Text}");
+                    foreach (var seg in result.Segments)
+                    {
+                        sb.AppendLine($"[{seg.Start:mm\\:ss} - {seg.End:mm\\:ss}] {seg.Text}");
+                    }
                 }
                 break;
 
@@ -77,9 +82,12 @@ public class ExportService : IExportService
                 sb.AppendLine(result.FullText);
                 sb.AppendLine();
                 sb.AppendLine("## Marcações Temporais para Revisão");
-                foreach (var seg in result.Segments)
+                if (result.Segments != null)
                 {
-                    sb.AppendLine($" - **{seg.Start:mm\\:ss}**: {seg.Text}");
+                    foreach (var seg in result.Segments)
+                    {
+                        sb.AppendLine($" - **{seg.Start:mm\\:ss}**: {seg.Text}");
+                    }
                 }
                 break;
 
