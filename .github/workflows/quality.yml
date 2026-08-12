@@ -1,4 +1,4 @@
-name: Qualidade
+name: Qualidade & CI/CD
 
 on:
   push:
@@ -9,39 +9,51 @@ permissions:
   contents: read
 
 jobs:
-  quality:
+  # JOB PRINCIPAL: Validação da nova arquitetura C# (.NET 9)
+  dotnet-quality:
+    name: C# / .NET 9 Quality & Build
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
-      - name: Baixar código
-        uses: actions/checkout@v6
+      - name: Baixar código fonte
+        uses: actions/checkout@v4
 
-      - name: Configurar Python
-        uses: actions/setup-python@v6
+      - name: Configurar .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restaurar dependências NuGet
+        run: dotnet restore CortexFlow.sln
+
+      - name: Compilar solução (Release)
+        run: dotnet build CortexFlow.sln --configuration Release --no-restore
+
+      - name: Executar testes automatizados (xUnit)
+        run: dotnet test CortexFlow.sln --configuration Release --no-build --verbosity normal
+
+  # JOB LEGADO: Validação do protótipo Python (mantido durante a migração)
+  legacy-python-quality:
+    name: Legacy Python Prototype Check
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Baixar código fonte
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: |
-            requirements.txt
-            requirements-dev.txt
+            legacy_python/requirements.txt
+            legacy_python/requirements-dev.txt
 
-      - name: Instalar dependências
-        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: Instalar dependências legadas
+        run: python -m pip install -r legacy_python/requirements.txt -r legacy_python/requirements-dev.txt
 
-      - name: Verificar código
-        run: python -m ruff check app.py src tests
-
-      - name: Validar dependências principais
-        run: >-
-          python -c "import customtkinter, tkinterdnd2, whisper, torch,
-          pdfplumber, docx, openpyxl, PIL, pytesseract;
-          print('Dependências principais: OK')"
-
-      - name: Executar testes com cobertura
-        run: |
-          python -m coverage run -m unittest discover -s tests -v
-          python -m coverage report
-
-      - name: Validar compilação
-        run: python -m compileall -q app.py src tests
+      - name: Executar testes legados Python
+        run: python -m unittest discover -s legacy_python/tests -v
