@@ -43,16 +43,21 @@ O foco principal atual é entregar um **transcritor e extrator profissional de a
 
 ---
 
-## 🚀 Como Compilar e Executar
+## 🚀 Como Executar
 
-Abra o terminal no repositório clonado:
+### Opção 1: Atalho Rápido (Dois cliques)
+Basta dar dois cliques no arquivo **[`run_app.bat`](run_app.bat)** na raiz do projeto! O script compilará (se necessário) e abrirá a aplicação desktop imediatamente.
 
+### Opção 2: Pelo Terminal
 ```powershell
 # Compilar a solução .NET 9
 dotnet build
 
 # Executar a suíte de testes xUnit
 dotnet test
+
+# Executar a aplicação desktop
+dotnet run --project src/CortexFlow.UI/CortexFlow.UI.csproj
 ```
 
 ---
@@ -62,6 +67,7 @@ dotnet test
 ```text
 CortexFlow/
 ├── CortexFlow.sln                    # Solução principal .NET 9
+├── run_app.bat                       # Atalho de execução rápida para Windows
 ├── LICENSE                           # Licença MIT (Francklin Campos)
 ├── src/                              # Projetos C# da nova arquitetura
 │   ├── CortexFlow.Core/              # Modelos, interfaces, ViewModels e regras de negócio
