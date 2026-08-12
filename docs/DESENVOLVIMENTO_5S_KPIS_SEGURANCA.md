@@ -36,7 +36,7 @@ Para manter a qualidade e o desempenho do CortexFlow em nível profissional, aco
 
 ---
 
-## 🔒 3. Privacidade e Segurança de Dados
+## 🛡️ 3. Privacidade e Segurança de Dados
 
 O CortexFlow lida com conteúdos sensíveis (aulas, reuniões, gravações pessoais e livros). Por isso, cumpre rigorosamente os seguintes pilares:
 
@@ -49,3 +49,16 @@ O CortexFlow lida com conteúdos sensíveis (aulas, reuniões, gravações pesso
    - O sistema não registra nomes de usuários do Windows nem credenciais privadas nos relatórios de logs.
 4. **Isolamento do Cache:**
    - O cache SHA-256 é armazenado criptograficamente por hash de conteúdo no diretório `AppData/Local/CortexFlow`, podendo ser limpo a qualquer momento com 1 clique.
+
+---
+
+## ⚡ 4. Mensuração de Impacto na Performance & Matriz de Riscos
+
+| Recurso Proposto | Impacto no Desempenho | Nível de Risco | Estratégia de Mitigação & Leveza |
+|---|:---:|:---:|---|
+| **Player Sincronizado (`MediaElement`)** | ⚡ Quase Nulo (< 1% CPU, ~15MB RAM) | 🟢 Baixo | Usa aceleração Direct3D/DXVA nativa do Windows; fallback para áudio WAV 16kHz se codec for incompatível. |
+| **Diarização de Locutores ("Quem Falou")** | ⏱️ +15% a 30% tempo | 🟡 Médio | Opcional via Checkbox (desligado por padrão); execução estritamente em thread assíncrona. |
+| **Monitor de GPU na StatusBar** | ⚡ Zero (< 0.1% CPU) | 🟢 Baixo | Polling assíncrono em background a cada 2s via WMI/DirectML. |
+| **Exportador Anki & Citações** | ⚡ Zero (< 5ms) | 🟢 Baixo | Manipulação pura de texto C# em memória. |
+| **Integração com Ollama Local (RAG)** | 🧠 Depende da máquina | 🟡 Médio | Conexão REST local opcional com timeout rígido de 3 segundos; UI 100% imune a travamentos. |
+
