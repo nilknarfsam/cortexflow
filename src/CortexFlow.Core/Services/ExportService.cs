@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -68,55 +69,136 @@ public class ExportService : IExportService
     public static string FormatTextContent(TranscriptionResult result, string mode)
     {
         var sb = new StringBuilder();
+        var fileName = Path.GetFileName(result.FilePath);
 
         switch (mode.ToUpperInvariant())
         {
-            case "RAW":
-                sb.AppendLine(result.FullText);
+            case "TIME_BLOCKS":
+            case "TIMEBLOCKS":
+            case "BLOCOS_DE_TEMPO":
+                sb.AppendLine($"# Transcrição por Blocos de Tempo: {fileName}");
+                sb.AppendLine($"**Idioma:** {result.Language} | **Duração:** {result.Duration:mm\\:ss}");
+                sb.AppendLine($"---");
+                sb.AppendLine();
+
+                if (result.Segments != null && result.Segments.Count > 0)
+                {
+                    TimeSpan currentBlockStart = result.Segments[0].Start;
+                    TimeSpan blockWindow = TimeSpan.FromSeconds(30);
+                    var currentBlockText = new StringBuilder();
+
+                    foreach (var seg in result.Segments)
+                    {
+                        if (seg.Start - currentBlockStart >= blockWindow && currentBlockText.Length > 0)
+                        {
+                            var blockEnd = seg.Start;
+                            sb.AppendLine($"### ⏱️ [{currentBlockStart:mm\\:ss} - {blockEnd:mm\\:ss}]");
+                            sb.AppendLine(currentBlockText.ToString().Trim());
+                            sb.AppendLine();
+
+                            currentBlockStart = seg.Start;
+                            currentBlockText.Clear();
+                        }
+                        currentBlockText.Append(seg.Text).Append(' ');
+                    }
+
+                    if (currentBlockText.Length > 0)
+                    {
+                        var lastEnd = result.Segments[^1].End;
+                        sb.AppendLine($"### ⏱️ [{currentBlockStart:mm\\:ss} - {lastEnd:mm\\:ss}]");
+                        sb.AppendLine(currentBlockText.ToString().Trim());
+                        sb.AppendLine();
+                    }
+                }
+                else
+                {
+                    sb.AppendLine(result.FullText);
+                }
                 break;
 
             case "NOTEBOOKLM":
             case "AI_READY":
-                sb.AppendLine($"# Transcrição: {Path.GetFileName(result.FilePath)}");
-                sb.AppendLine($"**Idioma:** {result.Language} | **Duração:** {result.Duration:g}");
+                sb.AppendLine($"# Transcrição Estruturada para IA: {fileName}");
+                sb.AppendLine($"**Idioma:** {result.Language} | **Duração:** {result.Duration:mm\\:ss}");
                 sb.AppendLine();
                 sb.AppendLine("## Conteúdo Principal");
-                sb.AppendLine(result.FullText);
+                sb.AppendLine(FormatParagraphs(result.FullText));
                 sb.AppendLine();
                 sb.AppendLine("## Linha do Tempo (Timestamps)");
                 if (result.Segments != null)
                 {
                     foreach (var seg in result.Segments)
                     {
-                        sb.AppendLine($"[{seg.Start:mm\\:ss} - {seg.End:mm\\:ss}] {seg.Text}");
+                        sb.AppendLine($"[{seg.Start:mm\\:ss} - {seg.End:mm\\:ss}] {seg.Text.Trim()}");
                     }
                 }
                 break;
 
             case "STUDY_MODE":
-                sb.AppendLine($"# Guia de Estudos - {Path.GetFileName(result.FilePath)}");
+                sb.AppendLine($"# Guia de Estudos - {fileName}");
+                sb.AppendLine($"**Data do Job:** {DateTime.Now:yyyy-MM-dd HH:mm}");
                 sb.AppendLine();
-                sb.AppendLine("## Transcrição Limpa");
-                sb.AppendLine(result.FullText);
+                sb.AppendLine("## 📖 Conteúdo da Transcrição");
+                sb.AppendLine(FormatParagraphs(result.FullText));
                 sb.AppendLine();
-                sb.AppendLine("## Marcações Temporais para Revisão");
+                sb.AppendLine("## ⏱️ Pontos-Chave da Linha do Tempo");
                 if (result.Segments != null)
                 {
                     foreach (var seg in result.Segments)
                     {
-                        sb.AppendLine($" - **{seg.Start:mm\\:ss}**: {seg.Text}");
+                        sb.AppendLine($" - **[{seg.Start:mm\\:ss}]**: {seg.Text.Trim()}");
                     }
                 }
                 break;
 
-            default: // CLEAN
-                sb.AppendLine($"---");
-                sb.AppendLine($"Arquivo: {Path.GetFileName(result.FilePath)}");
-                sb.AppendLine($"---");
+            case "RAW":
                 sb.AppendLine(result.FullText);
+                break;
+
+            default: // CLEAN
+                sb.AppendLine($"# Transcrição Limpa: {fileName}");
+                sb.AppendLine($"---");
+                sb.AppendLine();
+                sb.AppendLine(FormatParagraphs(result.FullText));
                 break;
         }
 
         return sb.ToString();
+    }
+
+    private static string FormatParagraphs(string rawText)
+    {
+        if (string.IsNullOrWhiteSpace(rawText)) return string.Empty;
+
+        // Se o texto já contiver quebras de linha duplas, mantém
+        if (rawText.Contains("\n\n")) return rawText;
+
+        var sb = new StringBuilder();
+        var sentences = rawText.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.RemoveEmptyEntries);
+        var sentenceCount = 0;
+
+        foreach (var sentence in sentences)
+        {
+            sb.Append(sentence.Trim());
+
+            if (!sentence.EndsWith('.') && !sentence.EndsWith('!') && !sentence.EndsWith('?'))
+            {
+                sb.Append(". ");
+            }
+            else
+            {
+                sb.Append(" ");
+            }
+
+            sentenceCount++;
+            if (sentenceCount >= 4)
+            {
+                sb.AppendLine();
+                sb.AppendLine();
+                sentenceCount = 0;
+            }
+        }
+
+        return sb.ToString().Trim();
     }
 }

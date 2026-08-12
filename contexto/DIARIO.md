@@ -12,16 +12,18 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
+- **Melhoria da Formatação de Transcrição (Blocos de Tempo & Parágrafos Legíveis):**
+  - Implementado no `ExportService.cs` o novo modo **`Time Blocks (Blocos de Tempo de 30s)`**, organizando a fala em intervalos marcados `### ⏱️ [00:00 - 00:30]`.
+  - Aprimorados os parágrafos do modo `Clean` para evitar blocos maciços de texto.
+- **Manual do Usuário em XAML (`HelpWindow.xaml`):**
+  - Modal intuitivo com 5 abas acessível pelo menu `Ajuda -> Documentação` ou pela tecla **`F1`**: Início Rápido, Predefinições & Formatos, Desempenho de Modelos Whisper, Atalhos de Teclado, Privacidade & 5S.
+- **Diretrizes 5S, KPIs e Segurança de Dados:**
+  - Criado o documento `docs/DESENVOLVIMENTO_5S_KPIS_SEGURANCA.md` cobrindo os 5 sensos em desenvolvimento de software, KPIs de performance (RTF <= 0.15x em GPU), consumo de memória e compromisso de dados 100% locais.
+- 16 testes automatizados xUnit aprovados em 80ms.
 - **Corrigida a Estilização XAML da Menu Bar:** Adicionado estilo de `MenuItem` (`Background="#1E293B"`, `Foreground="#F8FAFC"`, highlight `#0EA5E9`), tornando os submenus (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`) 100% legíveis e contrastantes no modo escuro.
 - **Remoção Completa do Código Legado Python:** Removida a pasta `legacy_python/` (código totalmente extraído e substituído por C# .NET 9).
 - **Atualização do GitHub Actions CI/CD:** `.github/workflows/quality.yml` simplificado para executar 100% em .NET 9 SDK (Restore, Release Build, xUnit).
 - 15 testes xUnit aprovados e solução .NET 9 compilando 100% verde em modo Release.
-
-
-
-
-
-
 
 
 

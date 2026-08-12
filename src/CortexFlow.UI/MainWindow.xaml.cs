@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using CortexFlow.Core.Models;
 using CortexFlow.Core.Services;
 using CortexFlow.Core.ViewModels;
@@ -34,6 +35,16 @@ public partial class MainWindow : Window
 
         _viewModel.QueueItems.CollectionChanged += (s, e) => UpdateStatusBar();
         UpdateStatusBar();
+
+        KeyDown += MainWindow_KeyDown;
+    }
+
+    private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F1)
+        {
+            OpenHelpWindow();
+        }
     }
 
     private void UpdateStatusBar()
@@ -152,7 +163,7 @@ public partial class MainWindow : Window
 
     private void DocumentationMenu_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo("https://github.com/nilknarfsam/cortexflow#readme") { UseShellExecute = true }); } catch { }
+        OpenHelpWindow();
     }
 
     private void GitHubMenu_Click(object sender, RoutedEventArgs e)
@@ -163,6 +174,15 @@ public partial class MainWindow : Window
     private void AboutMenu_Click(object sender, RoutedEventArgs e)
     {
         MessageBox.Show("CortexFlow v4.0 (.NET 9 / WinUI 3 Engine)\n\nTranscritor e Extrator Profissional 100% Local e Offline.\nAutor: Francklin Campos (nilknarfsam)\nLicença: MIT License", "Sobre o CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void OpenHelpWindow()
+    {
+        var helpWin = new HelpWindow
+        {
+            Owner = this
+        };
+        helpWin.ShowDialog();
     }
 
     private void ViewResult_Click(object sender, RoutedEventArgs e)
@@ -246,7 +266,14 @@ public partial class MainWindow : Window
 
         // 4. Modo de Estruturação
         var selectedMode = (StructuringCombo.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Clean";
-        _viewModel.Settings.StructuringMode = selectedMode.Split(' ')[0];
+        if (selectedMode.Contains("Time Blocks") || selectedMode.Contains("Blocos"))
+        {
+            _viewModel.Settings.StructuringMode = "TIME_BLOCKS";
+        }
+        else
+        {
+            _viewModel.Settings.StructuringMode = selectedMode.Split(' ')[0];
+        }
 
         // 5. Formato de Exportação
         var selectedFormat = (FormatCombo.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "md";
