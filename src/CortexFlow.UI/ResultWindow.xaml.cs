@@ -13,7 +13,7 @@ public partial class ResultWindow : Window
     private readonly TranscriptionResult _result;
     private readonly string _exportDirectory;
     private readonly DispatcherTimer _timer;
-    private bool _isUserDraggingSlider;
+    private bool _isUserDraggingSlider = false;
 
     public ResultWindow(TranscriptionResult result, string exportDirectory)
     {
