@@ -173,7 +173,7 @@ public partial class MainWindow : Window
 
     private void AboutMenu_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("CortexFlow v4.0 (.NET 9 / WinUI 3 Engine)\n\nTranscritor e Extrator Profissional 100% Local e Offline.\nAutor: Francklin Campos (nilknarfsam)\nLicença: MIT License", "Sobre o CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("CortexFlow v4.0 (.NET 9 / WinUI 3 Engine)\n\nTranscritor e Extrator Profissional 100% Local e Offline.\nAutor: Franklin Carvalho (nilknarfsam)\nLicença: MIT License", "Sobre o CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void OpenHelpWindow()

@@ -80,7 +80,7 @@ CortexFlow/
 ├── CortexFlow.sln                    # Solução principal .NET 9
 ├── setup_and_run.bat                 # Script 1-Clique: Verifica SDK, restaura NuGet, roda testes e executa no terminal
 ├── run_app.bat                       # Atalho de execução rápida com recompilação automática
-├── LICENSE                           # Licença MIT (Francklin Campos)
+├── LICENSE                           # Licença MIT (Franklin Carvalho)
 ├── src/                              # Projetos C# da nova arquitetura
 │   ├── CortexFlow.Core/              # Modelos, interfaces, ViewModels e regras de negócio
 │   ├── CortexFlow.Infrastructure/    # Integrações com Whisper.net, FFMpeg, PdfPig e Windows OCR
@@ -105,7 +105,7 @@ CortexFlow/
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a **Licença MIT** - consulte o arquivo [`LICENSE`](LICENSE) para mais detalhes. Copyright (c) 2026 **Francklin Campos (nilknarfsam)**.
+Este projeto está licenciado sob a **Licença MIT** - consulte o arquivo [`LICENSE`](LICENSE) para mais detalhes. Copyright (c) 2026 **Franklin Carvalho (nilknarfsam)**.
 
 ---
 
