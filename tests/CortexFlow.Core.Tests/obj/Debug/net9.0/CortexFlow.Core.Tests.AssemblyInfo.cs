@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CortexFlow.Core.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04599829e5ce07c689790b3379fde9bb739dd898")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14df2c1b622d0b4901e1309b4c61e53729157e6e")]
 [assembly: System.Reflection.AssemblyProductAttribute("CortexFlow.Core.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CortexFlow.Core.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
