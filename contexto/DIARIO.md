@@ -12,14 +12,14 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Concluído o **Redesenho de Nível Profissional do CortexFlow 4.0** baseado no benchmark dos conversores de mídia Studio (HandBrake / Adobe Media Encoder):
-  - Adicionada Menu Bar nativa com menus `Arquivo`, `Ferramentas`, `Exibir` e `Ajuda`.
-  - Adicionada Main Toolbar com botões estilizados para atalhos frequentes.
-  - Tabela de Fila (`DataGrid`) expandida para ocupar **85% da tela principal** com alto contraste (`#FFFFFF` em fundo `#1E293B`).
-  - Painel de Predefinições e opções de exportação reorganizados em um rodapé compacto.
-  - Adicionada `StatusBar` inferior dinâmica com contagem de itens e status do acelerador local.
-  - Atualizado o `run_app.bat` para forçar sempre a compilação (`dotnet build`) e refletir instantaneamente alterações visuais.
+- Criado o script **`setup_and_run.bat`** (ASCII puro) para permitirem a novos usuários e desenvolvedores testarem o repositório com **1-Clique direto pelo terminal**:
+  - Verificação automatizada do `.NET 9 SDK` e `FFmpeg`.
+  - Restauração automática de dependências **NuGet** (`dotnet restore`).
+  - Execução da suíte de 15 testes automatizados `xUnit` (`dotnet test`).
+  - Inicialização do aplicativo diretamente do código-fonte (`dotnet run`) sem precisar de IDE ou de compilar um `.exe`.
+- Atualizado o **[`README.md`](file:///c:/src/projects/cortexflow/README.md)** com instruções completas do `setup_and_run.bat` e `run_app.bat`.
 - 15 testes xUnit aprovados e solução .NET 9 compilando 100% verde em modo Release.
+
 
 
 

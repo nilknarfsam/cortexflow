@@ -9,7 +9,7 @@
 [![Licença MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](LICENSE)
 [![Processamento local](https://img.shields.io/badge/processamento-local-2E8B57)](#privacidade)
 
-CortexFlow combina transcrição de mídia com **`Whisper.net` (`whisper.cpp`)**, extração de documentos com **`Windows.Media.Ocr`** nativo, fila assíncrona concorrente e exportação estruturada em uma interface moderna **WinUI 3 (Fluent Design)** para Windows.
+CortexFlow combina transcrição de mídia com **`Whisper.net` (`whisper.cpp`)**, extração de documentos com **`Windows.Media.Ocr`** nativo, pré-processamento via FFmpeg, fila assíncrona concorrente e exportação estruturada em uma interface moderna estilo **Conversor de Mídia Studio (WPF / WinUI 3)** para Windows.
 
 ---
 
@@ -23,12 +23,13 @@ O foco principal atual é entregar um **transcritor e extrator profissional de a
 
 ## ⚡ Visão Geral & Recursos
 
-- **Transcrição Local em C#:** Integração nativa com `Whisper.net` (`whisper.cpp`) acelerado por GPU (CUDA/DirectML) ou CPU.
+- **Transcrição Local em C#:** Integração nativa com `Whisper.net` (`whisper.cpp`) acelerado por GPU (CUDA/DirectML) ou CPU, com tradução automática de idiomas (`.WithTranslate()`).
+- **Pré-processador de Mídia FFmpeg:** Converte áudios e vídeos (`.mp4`, `.mp3`, `.mkv`) em WAV 16kHz mono automaticamente, eliminando erros de cabeçalho RIFF.
+- **Interface Estilo Conversor de Mídia Studio:** DataGrid ocupando **85% da tela**, Menu Bar nativa (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`), Main Toolbar, ações por linha e StatusBar dinâmica.
 - **OCR Nativo do Windows:** Utiliza a API `Windows.Media.Ocr` embutida no Windows 10/11 (sem necessidade de instalar Tesseract externamente).
-- **Interface Nativa WinUI 3:** Fluent Design com suporte a Drag-and-Drop, temas claros/escuros e alta responsividade.
-- **Fila Assíncrona Thread-Safe:** Construída sobre `System.Threading.Channels` e o padrão MVVM com `CommunityToolkit.Mvvm`.
+- **Fila Assíncrona Thread-Safe:** Construída sobre `System.Threading.Channels` e o padrão MVVM.
 - **Cache Inteligente SHA-256:** Gravações atômicas em JSON para reprocessamento instantâneo.
-- **Modos de Estruturação:** Raw, Clean, AI Ready, NotebookLM e Study Mode.
+- **Modos de Estruturação & Exportação:** Presets para Raw, Clean, AI Ready, NotebookLM e Study Mode nos formatos `.md`, `.txt`, `.json` e `.pdf`.
 
 ---
 
@@ -39,21 +40,31 @@ O foco principal atual é entregar um **transcritor e extrator profissional de a
 | Windows 10 ou 11 | Sim | Sistema operacional alvo |
 | **.NET 9 SDK** | Sim | Runtime e compilador principal |
 | FFmpeg e FFprobe | Sim | Extração e conversão de áudio/vídeo |
-| Visual Studio 2022 ou VS Code | Não | IDE recomendada para C# / WinUI 3 |
+| Visual Studio 2022 ou VS Code | Não | IDE recomendada para C# |
 
 ---
 
-## 🚀 Como Executar
+## 🚀 Como Testar e Executar (1-Clique sem IDE)
 
-### Opção 1: Atalho Rápido (Dois cliques)
-Basta dar dois cliques no arquivo **[`run_app.bat`](run_app.bat)** na raiz do projeto! O script compilará (se necessário) e abrirá a aplicação desktop imediatamente.
+### 🌟 Opção 1: Instalador 1-Clique & Execução via Terminal (`setup_and_run.bat`) — **Recomendado**
+Ao clonar o repositório pela primeira vez, execute o script **[`setup_and_run.bat`](setup_and_run.bat)**. Ele fará tudo automaticamente no seu terminal:
+1. Verifica se o **.NET 9 SDK** e **FFmpeg** estão instalados (instruindo como instalar se faltar).
+2. Restaura todas as dependências **NuGet** da solução.
+3. Executa os **15 testes automatizados xUnit** para garantir a integridade.
+4. Inicia a aplicação diretamente do código-fonte com `dotnet run` sem precisar compilar um `.exe` nem abrir uma IDE!
 
-### Opção 2: Pelo Terminal
+### ⚡ Opção 2: Atalho de Execução Rápida (`run_app.bat`)
+Basta dar dois cliques no arquivo **[`run_app.bat`](run_app.bat)** na raiz do projeto! O script compilará a solução atualizada e abrirá o aplicativo desktop imediatamente.
+
+### 💻 Opção 3: Comandos do Terminal
 ```powershell
-# Compilar a solução .NET 9
-dotnet build
+# Restaurar dependências NuGet
+dotnet restore
 
-# Executar a suíte de testes xUnit
+# Compilar a solução .NET 9 em Release
+dotnet build --configuration Release
+
+# Executar a suíte de testes xUnit (15 testes)
 dotnet test
 
 # Executar a aplicação desktop
@@ -67,12 +78,13 @@ dotnet run --project src/CortexFlow.UI/CortexFlow.UI.csproj
 ```text
 CortexFlow/
 ├── CortexFlow.sln                    # Solução principal .NET 9
-├── run_app.bat                       # Atalho de execução rápida para Windows
+├── setup_and_run.bat                 # Script 1-Clique: Verifica SDK, restaura NuGet, roda testes e executa no terminal
+├── run_app.bat                       # Atalho de execução rápida com recompilação automática
 ├── LICENSE                           # Licença MIT (Francklin Campos)
 ├── src/                              # Projetos C# da nova arquitetura
 │   ├── CortexFlow.Core/              # Modelos, interfaces, ViewModels e regras de negócio
 │   ├── CortexFlow.Infrastructure/    # Integrações com Whisper.net, FFMpeg, PdfPig e Windows OCR
-│   └── CortexFlow.UI/                # Interface visual em WinUI 3 (MVVM)
+│   └── CortexFlow.UI/                # Interface visual em WinUI 3 / WPF Studio (MVVM)
 ├── tests/                            # Testes automatizados em xUnit
 │   └── CortexFlow.Core.Tests/        # Testes de unidade das regras de negócio e infraestrutura
 ├── contexto/                         # Documentação viva de arquitetura e decisões (DEC-003)
@@ -85,6 +97,7 @@ CortexFlow/
 ## 📖 Documentação & Memória Técnica
 
 - **[`contexto/ESTADO_ATUAL.md`](contexto/ESTADO_ATUAL.md)** — Fotografia técnica detalhada da migração.
+- **[`contexto/ROADMAP.md`](contexto/ROADMAP.md)** — Visão dos Horizontes do projeto.
 - **[`contexto/DECISOES.md`](contexto/DECISOES.md)** — Registro da decisão **DEC-003** (Migração para C# .NET 9 / WinUI 3).
 - **[`docs/GUIAMAESTRO_AVALIACAO_TECNOLOGICA.md`](docs/GUIAMAESTRO_AVALIACAO_TECNOLOGICA.md)** — Guia reutilizável para avaliação tecnológica e escolha de stack em novos projetos.
 
@@ -98,4 +111,4 @@ Este projeto está licenciado sob a **Licença MIT** - consulte o arquivo [`LICE
 
 ## 🔒 Privacidade
 
-O CortexFlow foi desenvolvido para processar todo o conteúdo localmente no computador do usuário. Suas transcrições, arquivos, dados de cache e históricos nunca são enviados para servidores externos ou APIs pagas na nuvem.
+O CortexFlow foi projetado desde o primeiro dia com o princípio de **100% de processamento local**. Nenhum áudio, vídeo, documento transcrito ou chave é enviado para servidores externos. Todo o processamento de IA é realizado diretamente na GPU/CPU da sua máquina local.
