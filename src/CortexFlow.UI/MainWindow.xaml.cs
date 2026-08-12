@@ -190,24 +190,27 @@ public partial class MainWindow : Window
 
         // 2. Idioma
         var selectedLang = (LanguageCombo.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "pt";
-        _viewModel.Settings.Language = selectedLang.Contains("pt") ? "pt" : (selectedLang.Contains("en") ? "en" : "es");
+        _viewModel.Settings.Language = selectedLang.Contains("pt") ? "pt" : (selectedLang.Contains("en") ? "en" : (selectedLang.Contains("es") ? "es" : "auto"));
 
-        // 3. Modo de Estruturação
+        // 3. Tradução
+        _viewModel.Settings.Translate = TranslateCheck.IsChecked ?? false;
+
+        // 4. Modo de Estruturação
         var selectedMode = (StructuringCombo.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Clean";
         _viewModel.Settings.StructuringMode = selectedMode.Split(' ')[0];
 
-        // 4. Formato de Exportação
+        // 5. Formato de Exportação
         var selectedFormat = (FormatCombo.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "md";
         _viewModel.Settings.ExportFormat = selectedFormat.Contains("pdf") ? "pdf" : (selectedFormat.Contains("json") ? "json" : (selectedFormat.Contains("txt") ? "txt" : "md"));
 
-        // 5. Pasta de Exportação
+        // 6. Pasta de Exportação
         _viewModel.Settings.ExportToSourceFolder = SameFolderCheck.IsChecked ?? true;
         if (!string.IsNullOrWhiteSpace(_customExportFolder))
         {
             _viewModel.Settings.ExportDirectory = _customExportFolder;
         }
 
-        // 6. Cache
+        // 7. Cache
         _viewModel.Settings.EnableCache = CacheCheck.IsChecked ?? true;
 
         await _viewModel.StartQueueAsync();

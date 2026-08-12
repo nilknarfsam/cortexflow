@@ -80,9 +80,15 @@ public class WhisperTranscriptionService : ITranscriptionService
         try
         {
             using var factory = WhisperFactory.FromPath(modelPath);
-            using var processor = factory.CreateBuilder()
-                .WithLanguage(settings.Language)
-                .Build();
+            var builder = factory.CreateBuilder()
+                .WithLanguage(settings.Language);
+
+            if (settings.Translate)
+            {
+                builder = builder.WithTranslate();
+            }
+
+            using var processor = builder.Build();
 
             await using var audioStream = File.OpenRead(convertedWavPath);
             var result = new TranscriptionResult

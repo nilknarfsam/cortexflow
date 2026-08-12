@@ -12,11 +12,12 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
+- Implementado o suporte a **Tradução Automática de Idiomas (`.WithTranslate()`)** no `WhisperTranscriptionService.cs` e integrado ao checkbox **`TranslateCheck`** na `MainWindow.xaml`.
 - Auditado e reestruturado o pipeline do GitHub Actions em **`.github/workflows/quality.yml`**:
   - Criado o Job principal **`dotnet-quality`** com .NET 9 SDK (Restore, Build Release, Execução dos 15 testes xUnit).
   - Criado o Job secundário **`legacy-python-quality`** para manter os testes do protótipo legado em `legacy_python/` sem quebrar o pipeline por falta do `requirements.txt` na raiz.
-  - Corrigido o erro de compilação de atributo XAML invalidado e validadas as builds localmente antes do push.
-- 15 testes xUnit aprovados e pipeline GitHub Actions reativado com sucesso para a arquitetura .NET 9.
+- 15 testes xUnit aprovados e compilação em modo Release validada sem erros.
+
 
 
 

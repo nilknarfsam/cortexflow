@@ -102,11 +102,12 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="4,0,0,0">
-                            <TextBlock Text="Idioma:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2"/>
+                            <TextBlock Text="Idioma Áudio:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2"/>
                             <ComboBox x:Name="LanguageCombo" SelectedIndex="0">
                                 <ComboBoxItem Content="Português (pt)"/>
                                 <ComboBoxItem Content="Inglês (en)"/>
                                 <ComboBoxItem Content="Espanhol (es)"/>
+                                <ComboBoxItem Content="Auto-Detectar"/>
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -137,6 +138,9 @@
                             </ComboBox>
                         </StackPanel>
                     </Grid>
+
+                    <!-- TRADUÇÃO AUTOMÁTICA -->
+                    <CheckBox x:Name="TranslateCheck" Content="🌐 Traduzir Áudio Automático (Translate)" Foreground="#38BDF8" FontSize="11" Margin="0,2,0,4"/>
 
                     <!-- OPÇÕES DE PASTA DE SAÍDA -->
                     <CheckBox x:Name="SameFolderCheck" Content="Salvar na mesma pasta do arquivo de origem" IsChecked="True" Foreground="#F1F5F9" FontSize="11" Margin="0,2,0,5" Checked="SameFolderCheck_Changed" Unchecked="SameFolderCheck_Changed"/>
