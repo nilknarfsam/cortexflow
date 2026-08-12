@@ -59,6 +59,28 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ViewResult_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedItem = QueueDataGrid.SelectedItem as QueueItem;
+        if (selectedItem?.Result != null)
+        {
+            var folder = _viewModel.Settings.ExportDirectory;
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CortexFlow_Exports");
+            }
+            var resultWin = new ResultWindow(selectedItem.Result, folder)
+            {
+                Owner = this
+            };
+            resultWin.ShowDialog();
+        }
+        else
+        {
+            MessageBox.Show("Selecione um item concluído na fila para visualizar o resultado.", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
     private void Window_DragOver(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))

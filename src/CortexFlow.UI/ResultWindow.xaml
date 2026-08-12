@@ -1,0 +1,53 @@
+<Window x:Class="CortexFlow.UI.ResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Visualizador de Resultado - CortexFlow 4.0" Height="650" Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="#0F172A" Foreground="#F8FAFC">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- CABEÇALHO -->
+        <Border Grid.Row="0" Background="#1E293B" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock x:Name="TitleText" Text="📄 Resultado do Processamento" FontSize="18" FontWeight="Bold" Foreground="#38BDF8"/>
+                    <TextBlock x:Name="SubtitleText" Text="Visualização estruturada e pronta para IA" FontSize="12" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ABAS DE CONTEÚDO -->
+        <TabControl Grid.Row="1" Background="#1E293B" Foreground="#F8FAFC" BorderThickness="0">
+            <TabItem Header="📖 Transcrição / Texto Extraído">
+                <TextBox x:Name="ResultTextBox" Background="#0F172A" Foreground="#F8FAFC" FontSize="13" 
+                         TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Margin="10"/>
+            </TabItem>
+            <TabItem Header="⏱️ Linha do Tempo (Timestamps)">
+                <DataGrid x:Name="TimestampsGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" Margin="10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Início" Binding="{Binding Start}" Width="1*"/>
+                        <DataGridTextColumn Header="Fim" Binding="{Binding End}" Width="1*"/>
+                        <DataGridTextColumn Header="Texto" Binding="{Binding Text}" Width="4*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+
+        <!-- BOTÕES DE AÇÃO -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="📋 Copiar para Área de Transferência" Click="Copy_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+            <Button Content="📁 Abrir Pasta de Exportação" Click="OpenFolder_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
+            <Button Content="❌ Fechar" Click="Close_Click" Background="#475569" Foreground="White" Padding="15,8" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>

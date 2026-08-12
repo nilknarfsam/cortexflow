@@ -157,6 +157,7 @@
 
         <!-- BARRA DE AÇÕES INFERIOR -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="👁️ Ver Resultado" Click="ViewResult_Click" Background="#3B82F6" Foreground="White" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
             <Button Content="🗑️ Limpar Fila" Click="ClearQueue_Click" Background="#475569" Foreground="White" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
             <Button Content="⏹️ Cancelar" Click="CancelQueue_Click" Background="#EF4444" Foreground="White" Padding="15,8" Margin="0,0,10,0" BorderThickness="0"/>
             <Button Content="▶️ Iniciar Transcrição &amp; Extração" Click="StartQueue_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="20,8" BorderThickness="0"/>

@@ -12,10 +12,11 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Adicionados seletores de **Formato de Exportação** (`.md`, `.txt`, `.json`, `.pdf`) e seletor de **Pasta de Saída** na `MainWindow.xaml`.
-- Atualizado o `ExportService.cs` para suportar exportações em PDF e salvamento em diretórios customizados com verificações de segurança contra ponteiros nulos.
-- Expandida a suíte de testes xUnit de 6 para **13 testes automatizados aprovados (100% OK em 128ms)**.
-- Atualizado o plano de execução e validado com o `run_app.bat`.
+- Implementada a janela visualizadora de resultados **`ResultWindow.xaml`** com suporte a abas de texto completo e linha do tempo de timestamps.
+- Adicionados botões para **"📋 Copiar para Área de Transferência"** e **"📁 Abrir Pasta no Explorer"**.
+- Integrado o botão **"👁️ Ver Resultado"** na `MainWindow.xaml`.
+- 13 testes xUnit aprovados e solução .NET 9 compilando 100% verde.
+
 
 
 
