@@ -12,13 +12,14 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- **Implementado Player de Mídia Sincronizado com Timestamps (`ResultWindow.xaml`):**
-  - Integrado o elemento `MediaElement` (Windows Media Foundation nativo via Direct3D) na janela visualizadora de resultados.
-  - Adicionado o botão **`▶ Pular p/ Ponto`** na tabela de linha do tempo, permitindo saltar e reproduzir o áudio/vídeo instantaneamente a partir de qualquer segmento de tempo da transcrição.
-  - Adicionado painel de controles com slider de progresso e botões Play/Pause/Stop.
-- **Melhoria da Formatação de Transcrição (Blocos de Tempo & Parágrafos Legíveis):**
-  - Modo `Time Blocks (30s)` (`### ⏱️ [00:00 - 00:30]`) e `HelpWindow.xaml` (F1).
+- **Reestruturação da Interface em 2 Abas Principais (Estúdio Integrado):**
+  - **Aba 1 (`🎬 1. Conversão & Fila`):** Fila principal com DataGrid (85%), barra de ferramentas e rodapé de presets.
+  - **Aba 2 (`👁️ 2. Visualizador & Player Sincronizado`):** Tela dividida integrada com visualização de texto transcrito, timestamps com botão `▶ Pular p/ Ponto` e Player MediaElement Direct3D.
+  - O clique no botão **`👁️ Ver no Player`** em qualquer item da Fila (Aba 1) alterna automaticamente para a Aba 2 e carrega a mídia e o texto instantaneamente sem abrir janelas modais separadas!
+- **Implementado Player de Mídia Sincronizado com Timestamps (`MainWindow.xaml`):**
+  - Integração nativa do `MediaElement` (Windows Media Foundation).
 - 16 testes automatizados xUnit aprovados em 80ms.
+
 
 - **Corrigida a Estilização XAML da Menu Bar:** Adicionado estilo de `MenuItem` (`Background="#1E293B"`, `Foreground="#F8FAFC"`, highlight `#0EA5E9`), tornando os submenus (`Arquivo`, `Ferramentas`, `Exibir`, `Ajuda`) 100% legíveis e contrastantes no modo escuro.
 - **Remoção Completa do Código Legado Python:** Removida a pasta `legacy_python/` (código totalmente extraído e substituído por C# .NET 9).

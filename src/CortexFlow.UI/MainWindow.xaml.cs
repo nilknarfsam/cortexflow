@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using CortexFlow.Core.Models;
 using CortexFlow.Core.Services;
 using CortexFlow.Core.ViewModels;
@@ -18,7 +19,9 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
     private readonly CacheService _cacheService;
+    private readonly DispatcherTimer _playerTimer;
     private string? _customExportFolder;
+    private TranscriptionResult? _currentLoadedResult;
 
     public MainWindow()
     {
@@ -35,6 +38,12 @@ public partial class MainWindow : Window
 
         _viewModel.QueueItems.CollectionChanged += (s, e) => UpdateStatusBar();
         UpdateStatusBar();
+
+        _playerTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(250)
+        };
+        _playerTimer.Tick += PlayerTimer_Tick;
 
         KeyDown += MainWindow_KeyDown;
     }
@@ -63,6 +72,173 @@ public partial class MainWindow : Window
         }
     }
 
+    // =========================================================================================
+    // NAVEGAÇÃO E SELEÇÃO DE MÍDIA NO PLAYER (ABA 2)
+    // =========================================================================================
+    private void RowViewInPlayer_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is QueueItem item && item.Result != null)
+        {
+            LoadResultIntoPlayer(item.Result);
+        }
+    }
+
+    private void LoadResultIntoPlayer(TranscriptionResult result)
+    {
+        _currentLoadedResult = result;
+
+        PlayerMediaTitle.Text = $"📄 {Path.GetFileName(result.FilePath)}";
+        PlayerMediaSubtitle.Text = $"Idioma: {result.Language} | Duração: {result.Duration:mm\\:ss}";
+
+        PlayerResultTextBox.Text = result.FullText;
+        PlayerTimestampsGrid.ItemsSource = result.Segments;
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(result.FilePath) && File.Exists(result.FilePath))
+            {
+                MainMediaPlayer.Source = new Uri(result.FilePath);
+                PlayerStatusText.Text = "🎵 Mídia Carregada e Pronta";
+                PlayerStatusText.Foreground = System.Windows.Media.Brushes.MediumSeaGreen;
+            }
+            else
+            {
+                PlayerStatusText.Text = "⚠️ Arquivo de mídia original não encontrado no disco.";
+                PlayerStatusText.Foreground = System.Windows.Media.Brushes.Orange;
+            }
+        }
+        catch (Exception ex)
+        {
+            PlayerStatusText.Text = $"⚠️ Erro ao carregar player: {ex.Message}";
+            PlayerStatusText.Foreground = System.Windows.Media.Brushes.IndianRed;
+        }
+
+        // Alterna automaticamente para a Aba 2 (Visualizador & Player Sincronizado)
+        MainTabControl.SelectedItem = PlayerTab;
+    }
+
+    private void JumpToTimestamp_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is TranscriptionSegment segment)
+        {
+            try
+            {
+                MainMediaPlayer.Position = segment.Start;
+                MainMediaPlayer.Play();
+                _playerTimer.Start();
+                PlayerStatusText.Text = $"▶ Reproduzindo em [{segment.Start:mm\\:ss}]";
+                PlayerStatusText.Foreground = System.Windows.Media.Brushes.LightSkyBlue;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Não foi possível reproduzir neste ponto: {ex.Message}", "CortexFlow Player", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+    }
+
+    private void PlayMedia_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            MainMediaPlayer.Play();
+            _playerTimer.Start();
+            PlayerStatusText.Text = "▶ Reproduzindo Mídia";
+            PlayerStatusText.Foreground = System.Windows.Media.Brushes.MediumSeaGreen;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro ao iniciar reprodução: {ex.Message}", "CortexFlow Player", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void PauseMedia_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            MainMediaPlayer.Pause();
+            _playerTimer.Stop();
+            PlayerStatusText.Text = "⏸ Reprodução Pausada";
+            PlayerStatusText.Foreground = System.Windows.Media.Brushes.Orange;
+        }
+        catch { }
+    }
+
+    private void StopMedia_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            MainMediaPlayer.Stop();
+            _playerTimer.Stop();
+            TimelineSlider.Value = 0;
+            CurrentTimeText.Text = "00:00";
+            PlayerStatusText.Text = "⏹ Reprodução Parada";
+            PlayerStatusText.Foreground = System.Windows.Media.Brushes.SlateGray;
+        }
+        catch { }
+    }
+
+    private void MainMediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
+    {
+        if (MainMediaPlayer.NaturalDuration.HasTimeSpan)
+        {
+            var duration = MainMediaPlayer.NaturalDuration.TimeSpan;
+            TimelineSlider.Maximum = duration.TotalSeconds;
+            TotalTimeText.Text = $"{duration:mm\\:ss}";
+        }
+    }
+
+    private void MainMediaPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+    {
+        PlayerStatusText.Text = $"⚠️ Formato de mídia não suportado nativamente pelo Windows Player.";
+        PlayerStatusText.Foreground = System.Windows.Media.Brushes.IndianRed;
+    }
+
+    private void PlayerTimer_Tick(object? sender, EventArgs e)
+    {
+        if (MainMediaPlayer.NaturalDuration.HasTimeSpan)
+        {
+            TimelineSlider.Value = MainMediaPlayer.Position.TotalSeconds;
+            CurrentTimeText.Text = $"{MainMediaPlayer.Position:mm\\:ss}";
+        }
+    }
+
+    private void TimelineSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+    }
+
+    private void CopyPlayerText_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentLoadedResult != null)
+        {
+            Clipboard.SetText(_currentLoadedResult.FullText);
+            MessageBox.Show("Texto da transcrição copiado para a área de transferência com sucesso!", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void OpenExportFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var folder = _viewModel.Settings.ExportToSourceFolder && _currentLoadedResult != null && !string.IsNullOrWhiteSpace(_currentLoadedResult.FilePath)
+            ? Path.GetDirectoryName(_currentLoadedResult.FilePath)!
+            : _viewModel.Settings.ExportDirectory;
+
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CortexFlow_Exports");
+        }
+
+        if (Directory.Exists(folder))
+        {
+            Process.Start("explorer.exe", folder);
+        }
+        else
+        {
+            MessageBox.Show("A pasta de exportação ainda não foi criada.", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    // =========================================================================================
+    // BARRA DE FERRAMENTAS E FILA (ABA 1)
+    // =========================================================================================
     private void SelectFiles_Click(object sender, RoutedEventArgs e)
     {
         var openFileDialog = new OpenFileDialog
@@ -105,14 +281,6 @@ public partial class MainWindow : Window
         if (sender is Button btn && btn.Tag is QueueItem item)
         {
             _viewModel.RemoveItem(item.Id);
-        }
-    }
-
-    private void RowViewResult_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Tag is QueueItem item && item.Result != null)
-        {
-            OpenResultWindow(item.Result);
         }
     }
 
@@ -161,6 +329,16 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private void SwitchToQueueTab_Click(object sender, RoutedEventArgs e)
+    {
+        MainTabControl.SelectedIndex = 0;
+    }
+
+    private void SwitchToPlayerTab_Click(object sender, RoutedEventArgs e)
+    {
+        MainTabControl.SelectedIndex = 1;
+    }
+
     private void DocumentationMenu_Click(object sender, RoutedEventArgs e)
     {
         OpenHelpWindow();
@@ -173,7 +351,7 @@ public partial class MainWindow : Window
 
     private void AboutMenu_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("CortexFlow v4.0 (.NET 9 / WinUI 3 Engine)\n\nTranscritor e Extrator Profissional 100% Local e Offline.\nAutor: Franklin Carvalho (nilknarfsam)\nLicença: MIT License", "Sobre o CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("CortexFlow v4.0 (.NET 9 / WinUI 3 Engine)\n\nTranscritor e Estúdio Profissional 100% Local e Offline.\nAutor: Franklin Carvalho (nilknarfsam)\nLicença: MIT License", "Sobre o CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void OpenHelpWindow()
@@ -183,37 +361,6 @@ public partial class MainWindow : Window
             Owner = this
         };
         helpWin.ShowDialog();
-    }
-
-    private void ViewResult_Click(object sender, RoutedEventArgs e)
-    {
-        var selectedItem = QueueDataGrid.SelectedItem as QueueItem;
-        if (selectedItem?.Result != null)
-        {
-            OpenResultWindow(selectedItem.Result);
-        }
-        else
-        {
-            MessageBox.Show("Selecione um item concluído na fila para visualizar o resultado.", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-    }
-
-    private void OpenResultWindow(TranscriptionResult result)
-    {
-        var folder = _viewModel.Settings.ExportToSourceFolder && !string.IsNullOrWhiteSpace(result.FilePath)
-            ? Path.GetDirectoryName(result.FilePath)!
-            : _viewModel.Settings.ExportDirectory;
-
-        if (string.IsNullOrWhiteSpace(folder))
-        {
-            folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CortexFlow_Exports");
-        }
-
-        var resultWin = new ResultWindow(result, folder)
-        {
-            Owner = this
-        };
-        resultWin.ShowDialog();
     }
 
     private void Window_DragOver(object sender, DragEventArgs e)
@@ -300,5 +447,16 @@ public partial class MainWindow : Window
     private void ClearQueue_Click(object sender, RoutedEventArgs e)
     {
         _viewModel.ClearQueue();
+    }
+
+    private void Window_Closed(object sender, EventArgs e)
+    {
+        try
+        {
+            _playerTimer.Stop();
+            MainMediaPlayer.Stop();
+            MainMediaPlayer.Close();
+        }
+        catch { }
     }
 }
