@@ -12,12 +12,14 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- **Sincronização em Tempo Real do Vídeo com a Transcrição (`MainWindow.xaml`):**
-  - **Acompanhamento Ativo:** Conforme o áudio/vídeo roda no player, a linha exata da transcrição é automaticamente destacada e rola em tela em tempo real (`ScrollIntoView`).
-  - **Clique Duplo Intuitivo:** Removida a coluna poluída de botões repetidos. Agora basta um **clique duplo** (ou clique) em qualquer linha da tabela para saltar e reproduzir o áudio/vídeo naquele instante exato.
-  - **Botão Flutuante de Re-Sincronismo (`🎯 Sincronizar com Vídeo`):** Permite voltar a focar na posição atual caso o usuário role a tabela para ler outros trechos.
-  - Tabela limpa e 100% visível sem cortes horizontais.
+- **Player Interativo com Arraste Fluido de Agulha (Scrubbing):**
+  - Implementados os manipuladores `PreviewMouseDown` e `PreviewMouseUp` no `TimelineSlider`.
+  - Agora o usuário pode pegar a agulha, arrastar para qualquer instante da mídia e soltar, fazendo o player reproduzir daquele exato momento sem travamentos ou saltos.
+- **Unificação da Aba 2 em Painel Único Sincronizado (`MainWindow.xaml`):**
+  - Eliminadas as sub-abas internas da Aba 2. Unificada a interface em um **Painel Único Sincronizado**, com seleção livre de texto com o mouse e cópia direta via **`Ctrl + C`**.
+  - Adicionado o botão **`📖 Ver Texto Corrido`** para alternar rapidamente entre o modo sincronizado por falas e o texto formatado em parágrafos.
 - 16 testes automatizados xUnit aprovados em 80ms.
+
 
 
 

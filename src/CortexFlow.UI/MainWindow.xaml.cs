@@ -23,6 +23,8 @@ public partial class MainWindow : Window
     private string? _customExportFolder;
     private TranscriptionResult? _currentLoadedResult;
     private bool _autoScrollSyncEnabled = true;
+    private bool _isUserDraggingSlider = false;
+    private bool _isTextModeVisible = false;
 
     public MainWindow()
     {
@@ -42,7 +44,7 @@ public partial class MainWindow : Window
 
         _playerTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(250)
+            Interval = TimeSpan.FromMilliseconds(200)
         };
         _playerTimer.Tick += PlayerTimer_Tick;
 
@@ -74,7 +76,7 @@ public partial class MainWindow : Window
     }
 
     // =========================================================================================
-    // NAVEGAÇÃO E SELEÇÃO DE MÍDIA NO PLAYER (ABA 2)
+    // NAVEGAÇÃO E SELEÇÃO DE MÍDIA NO PLAYER (ABA 2 - PAINEL ÚNICO INTEGRADO)
     // =========================================================================================
     private void RowViewInPlayer_Click(object sender, RoutedEventArgs e)
     {
@@ -107,7 +109,7 @@ public partial class MainWindow : Window
             if (!string.IsNullOrWhiteSpace(result.FilePath) && File.Exists(result.FilePath))
             {
                 MainMediaPlayer.Source = new Uri(result.FilePath);
-                PlayerStatusText.Text = "🎵 Mídia Carregada — Clique duplo na tabela para pular";
+                PlayerStatusText.Text = "🎵 Mídia Pronta — Clique duplo na linha para pular o vídeo";
                 PlayerStatusText.Foreground = System.Windows.Media.Brushes.MediumSeaGreen;
             }
             else
@@ -122,21 +124,34 @@ public partial class MainWindow : Window
             PlayerStatusText.Foreground = System.Windows.Media.Brushes.IndianRed;
         }
 
-        // Alterna para a Aba 2 (Visualizador & Player Sincronizado)
+        // Alterna para a Aba 2
         MainTabControl.SelectedItem = PlayerTab;
     }
 
-    // CLIQUE DUPLO OU CLIQUE NA TABELA SALTA PARA O INSTANTE EXATO DA FALA
+    private void ToggleViewBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _isTextModeVisible = !_isTextModeVisible;
+        if (_isTextModeVisible)
+        {
+            PlayerTimestampsGrid.Visibility = Visibility.Collapsed;
+            PlayerResultTextBox.Visibility = Visibility.Visible;
+            ToggleViewBtn.Content = "⏱️ Ver Falas Sincronizadas";
+        }
+        else
+        {
+            PlayerResultTextBox.Visibility = Visibility.Collapsed;
+            PlayerTimestampsGrid.Visibility = Visibility.Visible;
+            ToggleViewBtn.Content = "📖 Ver Texto Corrido";
+        }
+    }
+
+    // CLIQUE DUPLO SALTA A MÍDIA PARA O MOMENTO EXATO DA FALA
     private void PlayerTimestampsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (PlayerTimestampsGrid.SelectedItem is TranscriptionSegment segment)
         {
             JumpToSegment(segment);
         }
-    }
-
-    private void PlayerTimestampsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
     }
 
     private void JumpToSegment(TranscriptionSegment segment)
@@ -169,7 +184,7 @@ public partial class MainWindow : Window
         var pos = MainMediaPlayer.Position;
         var activeSegment = _currentLoadedResult.Segments.FirstOrDefault(s => s.Start <= pos && pos <= s.End);
 
-        if (activeSegment != null)
+        if (activeSegment != null && PlayerTimestampsGrid.SelectedItem != activeSegment)
         {
             PlayerTimestampsGrid.SelectedItem = activeSegment;
             PlayerTimestampsGrid.ScrollIntoView(activeSegment);
@@ -233,10 +248,34 @@ public partial class MainWindow : Window
         PlayerStatusText.Foreground = System.Windows.Media.Brushes.IndianRed;
     }
 
-    // TIMER EM TEMPO REAL: DESTACA E ROLA A TABELA AUTOMATICAMENTE CONFORME O VÍDEO RODA
-    private void PlayerTimer_Tick(object? sender, EventArgs e)
+    // ARRASTE DA AGULHA (SCRUBBING INTERATIVO DO PLAYER)
+    private void TimelineSlider_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _isUserDraggingSlider = true;
+    }
+
+    private void TimelineSlider_PreviewMouseUp(object sender, MouseButtonEventArgs e)
     {
         if (MainMediaPlayer.NaturalDuration.HasTimeSpan)
+        {
+            MainMediaPlayer.Position = TimeSpan.FromSeconds(TimelineSlider.Value);
+            CurrentTimeText.Text = $"{MainMediaPlayer.Position:mm\\:ss}";
+        }
+        _isUserDraggingSlider = false;
+    }
+
+    private void TimelineSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isUserDraggingSlider && MainMediaPlayer.NaturalDuration.HasTimeSpan)
+        {
+            CurrentTimeText.Text = $"{TimeSpan.FromSeconds(TimelineSlider.Value):mm\\:ss}";
+        }
+    }
+
+    // TIMER EM TEMPO REAL
+    private void PlayerTimer_Tick(object? sender, EventArgs e)
+    {
+        if (!_isUserDraggingSlider && MainMediaPlayer.NaturalDuration.HasTimeSpan)
         {
             TimelineSlider.Value = MainMediaPlayer.Position.TotalSeconds;
             CurrentTimeText.Text = $"{MainMediaPlayer.Position:mm\\:ss}";
@@ -248,16 +287,22 @@ public partial class MainWindow : Window
         }
     }
 
-    private void TimelineSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-    }
-
     private void CopyPlayerText_Click(object sender, RoutedEventArgs e)
     {
-        if (_currentLoadedResult != null)
+        if (_isTextModeVisible && !string.IsNullOrWhiteSpace(PlayerResultTextBox.Text))
+        {
+            Clipboard.SetText(PlayerResultTextBox.Text);
+            MessageBox.Show("Texto corrido copiado com sucesso!", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        else if (PlayerTimestampsGrid.SelectedItem is TranscriptionSegment seg)
+        {
+            Clipboard.SetText(seg.Text);
+            MessageBox.Show("Trecho selecionado copiado para a área de transferência!", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        else if (_currentLoadedResult != null)
         {
             Clipboard.SetText(_currentLoadedResult.FullText);
-            MessageBox.Show("Texto da transcrição copiado para a área de transferência com sucesso!", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Texto completo da transcrição copiado com sucesso!", "CortexFlow", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 

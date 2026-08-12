@@ -18,9 +18,9 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 |---|---|
 | Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 / WPF Fluent |
 | Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure`, `CortexFlow.UI` e `CortexFlow.Core.Tests` |
-| Arquitetura em Abas Estúdio | **`MainWindow.xaml`** reestruturada em **2 Abas Principais (Estúdio Integrado)**:<br>• **`🎬 1. Conversão & Fila`**: Tabela DataGrid (85%), toolbar de atalhos e rodapé de presets.<br>• **`👁️ 2. Visualizador & Player Sincronizado`**: Tela dividida com texto transcrito, timestamps e Player MediaElement Direct3D. |
-| Sincronismo em Tempo Real | Acompanhamento ativo do áudio/vídeo destacando a linha transcrita no DataGrid em tempo real; clique duplo na linha salta a mídia para o instante exato; botão flutuante **`🎯 Sincronizar com Vídeo`**. |
-| Tabela Limpa (Sem Poluição) | Removidos os botões repetidos da coluna de cada linha, eliminando cortes horizontais na interface |
+| Player Interativo (Scrubbing) | Slider de linha do tempo com suporte a **arraste de agulha fluido** (`PreviewMouseDown`/`PreviewMouseUp`), permitindo soltar a agulha em qualquer instante e continuar a reprodução sem saltos involuntários |
+| Painel Único Sincronizado | Aba 2 unificada em um **único painel limpo**, com seleção livre de texto, suporte nativo a **`Ctrl + C`**, destaque azul ativo em tempo real e botão de alternância **`📖 Ver Texto Corrido`** |
+| Arquitetura em Abas Estúdio | **`MainWindow.xaml`** reestruturada em **2 Abas Principais (Estúdio Integrado)** |
 | Formatação de Transcrição | Modo **`Time Blocks (Blocos de Tempo de 30s)`** (`### ⏱️ [MM:SS - MM:SS]`) + parágrafos formatados no modo `Clean` |
 | Manual do Usuário (XAML) | **`HelpWindow.xaml`** (F1) com 5 abas intuitivas: Início Rápido, Predefinições, Modelos Whisper, Atalhos de Teclado, Privacidade & 5S |
 | Diretrizes de Qualidade | Documento `docs/DESENVOLVIMENTO_5S_KPIS_SEGURANCA.md` cobrindo 5S, KPIs e matriz de risco de performance |
@@ -30,6 +30,7 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 | GitHub Actions CI/CD | Pipeline `.github/workflows/quality.yml` atualizado para **100% .NET 9 (Restore, Build Release, xUnit)** |
 | Pré-processador de Mídia | **`AudioPreProcessor` (FFmpeg)** converte automaticamente qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) para WAV 16kHz mono |
 | Testes C# | **16 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 80ms) |
+
 
 
 

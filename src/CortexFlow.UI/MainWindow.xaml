@@ -242,13 +242,13 @@
             </TabItem>
 
             <!-- ========================================================================================= -->
-            <!-- ABA 2: VISUALIZADOR & PLAYER SINCRONIZADO (STUDIO WORKSPACE) -->
+            <!-- ABA 2: VISUALIZADOR & PLAYER SINCRONIZADO (ESTÚDIO INTEGRADO - PAINEL ÚNICO LIMPO) -->
             <!-- ========================================================================================= -->
             <TabItem Header="👁️ 2. Visualizador &amp; Player Sincronizado" x:Name="PlayerTab">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/> <!-- HEADER DA MÍDIA SELECIONADA -->
-                        <RowDefinition Height="*"/>    <!-- PAINEL DIVIDIDO (TEXTO + PLAYER) -->
+                        <RowDefinition Height="*"/>    <!-- PAINEL DIVIDIDO (TRANSCRIÇÃO SINCRONIZADA + PLAYER) -->
                     </Grid.RowDefinitions>
 
                     <!-- HEADER DA MÍDIA SELECIONADA -->
@@ -261,36 +261,33 @@
 
                             <StackPanel>
                                 <TextBlock x:Name="PlayerMediaTitle" Text="📄 Nenhuma mídia selecionada na fila" FontSize="16" FontWeight="Bold" Foreground="#38BDF8"/>
-                                <TextBlock x:Name="PlayerMediaSubtitle" Text="Clique duplo em uma linha da tabela ou dê clique simples para pular a mídia diretamente no ponto." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                                <TextBlock x:Name="PlayerMediaSubtitle" Text="Selecione qualquer trecho para copiar (Ctrl+C) ou dê clique duplo para pular o áudio/vídeo." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- BOTÃO FLUTUANTE DE RE-SINCRONISMO DINÂMICO -->
-                                <Button x:Name="SyncButton" Content="🎯 Sincronizar com Vídeo" Click="SyncButton_Click" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Rolar e selecionar o trecho exato sendo falado agora no áudio/vídeo"/>
+                                <Button x:Name="ToggleViewBtn" Content="📖 Ver Texto Corrido" Click="ToggleViewBtn_Click" Background="#334155" Foreground="White" Padding="10,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Alternar para texto corrido formatado em parágrafos"/>
+                                <Button x:Name="SyncButton" Content="🎯 Sincronizar com Vídeo" Click="SyncButton_Click" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Rolar para o trecho falado no momento"/>
                                 <Button Content="📋 Copiar Texto" Click="CopyPlayerText_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0"/>
                                 <Button Content="📁 Pasta de Saída" Click="OpenExportFolder_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="12,6" BorderThickness="0"/>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- PAINEL DIVIDIDO: ESQUERDA (TEXTO/TIMESTAMPS LIMPOS) + DIREITA (PLAYER) -->
+                    <!-- PAINEL DIVIDIDO: ESQUERDA (TELA ÚNICA DE TRANSCRIÇÃO SINCRONIZADA) + DIREITA (PLAYER INTERATIVO) -->
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1.3*"/>
+                            <ColumnDefinition Width="1.35*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- ESQUERDA: TRANSCRIÇÃO & TIMESTAMPS SEM BOTÕES POLUÍDOS (CLIQUE DUPLO SELECIONA) -->
-                        <TabControl Grid.Column="0" Background="#1E293B" Foreground="#F8FAFC" BorderThickness="0">
-                            <TabItem Header="📖 Transcrição Formatada">
-                                <TextBox x:Name="PlayerResultTextBox" Background="#0F172A" Foreground="#F8FAFC" FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Margin="6"/>
-                            </TabItem>
-
-                            <TabItem Header="⏱️ Linha do Tempo (Clique Duplo para Tocar)">
-                                <DataGrid x:Name="PlayerTimestampsGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" RowBackground="#1E293B" AlternatingRowBackground="#0F172A" Margin="6" MouseDoubleClick="PlayerTimestampsGrid_MouseDoubleClick" SelectionChanged="PlayerTimestampsGrid_SelectionChanged">
+                        <!-- ESQUERDA: TRANSCRIÇÃO SINCRONIZADA EM PAINEL ÚNICO COM CTRL+C E SELEÇÃO LIVRE -->
+                        <Border Grid.Column="0" Background="#1E293B" CornerRadius="6" Padding="6">
+                            <Grid>
+                                <!-- TELA 1: TABELA SINCRONIZADA DE FALAS (PADRÃO) -->
+                                <DataGrid x:Name="PlayerTimestampsGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="#0F172A" Foreground="#F8FAFC" RowBackground="#1E293B" AlternatingRowBackground="#0F172A" SelectionMode="Single" SelectionUnit="FullRow" ClipboardCopyMode="ExcludeHeader" MouseDoubleClick="PlayerTimestampsGrid_MouseDoubleClick">
                                     <DataGrid.Resources>
-                                        <!-- ESTILO DE DESTAQUE DA LINHA EM REPRODUÇÃO ATIVA -->
+                                        <!-- DESTALHE AZUL VIBRANTE DA LINHA ATIVA -->
                                         <Style TargetType="DataGridRow">
                                             <Style.Triggers>
                                                 <Trigger Property="IsSelected" Value="True">
@@ -302,18 +299,28 @@
                                         </Style>
                                     </DataGrid.Resources>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Início" Binding="{Binding Start, StringFormat=\{0:mm\\:ss\}}" Width="0.9*"/>
-                                        <DataGridTextColumn Header="Fim" Binding="{Binding End, StringFormat=\{0:mm\\:ss\}}" Width="0.9*"/>
-                                        <DataGridTextColumn Header="Texto Transcrito (Clique duplo para pular o áudio)" Binding="{Binding Text}" Width="4*"/>
+                                        <DataGridTextColumn Header="Início" Binding="{Binding Start, StringFormat=\{0:mm\\:ss\}}" Width="0.8*"/>
+                                        <DataGridTextColumn Header="Fim" Binding="{Binding End, StringFormat=\{0:mm\\:ss\}}" Width="0.8*"/>
+                                        <DataGridTextColumn Header="Transcrição Sincronizada (Clique duplo pula | Ctrl+C copia)" Binding="{Binding Text}" Width="4.2*">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                                    <Setter Property="Padding" Value="4,3"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
-                            </TabItem>
-                        </TabControl>
+
+                                <!-- TELA 2: TEXTO CORRIDO FORMATADO EM PARÁGRAFOS (OCULTO POR PADRÃO, ALTERNADO VIA BOTÃO) -->
+                                <TextBox x:Name="PlayerResultTextBox" Visibility="Collapsed" Background="#0F172A" Foreground="#F8FAFC" FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Padding="10"/>
+                            </Grid>
+                        </Border>
 
                         <!-- DIVISOR REDIMENSIONÁVEL -->
                         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="#334155" Margin="4,0"/>
 
-                        <!-- DIREITA: PLAYER SINCRONIZADO DE ÁUDIO/VÍDEO -->
+                        <!-- DIREITA: PLAYER INTERATIVO COM ARRASTE DE AGULHA FLUIDO (SCRUBBING) -->
                         <Border Grid.Column="2" Background="#1E293B" CornerRadius="6" Padding="10">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -322,14 +329,14 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock x:Name="PlayerStatusText" Text="🎵 Reprodução Sincronizada em Tempo Real" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,8"/>
+                                <TextBlock x:Name="PlayerStatusText" Text="🎵 Player Interativo Sincronizado" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,8"/>
 
                                 <!-- MEDIA ELEMENT NATIVO WINDOWS -->
                                 <Border Grid.Row="1" Background="#000000" CornerRadius="4">
                                     <MediaElement x:Name="MainMediaPlayer" LoadedBehavior="Manual" UnloadedBehavior="Stop" MediaOpened="MainMediaPlayer_MediaOpened" MediaFailed="MainMediaPlayer_MediaFailed"/>
                                 </Border>
 
-                                <!-- CONTROLES DO PLAYER -->
+                                <!-- CONTROLES DO PLAYER COM SLIDER FLUIDO -->
                                 <StackPanel Grid.Row="2" Margin="0,8,0,0">
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
@@ -338,7 +345,13 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock x:Name="CurrentTimeText" Text="00:00" FontSize="11" Foreground="#94A3B8" Margin="0,0,8,0"/>
-                                        <Slider Grid.Column="1" x:Name="TimelineSlider" Minimum="0" Maximum="100" ValueChanged="TimelineSlider_ValueChanged"/>
+                                        
+                                        <!-- SLIDER INTERATIVO COM SUPORTE A ARRASTE DE AGULHA FLUIDO -->
+                                        <Slider Grid.Column="1" x:Name="TimelineSlider" Minimum="0" Maximum="100" 
+                                                PreviewMouseDown="TimelineSlider_PreviewMouseDown"
+                                                PreviewMouseUp="TimelineSlider_PreviewMouseUp"
+                                                ValueChanged="TimelineSlider_ValueChanged"/>
+
                                         <TextBlock Grid.Column="2" x:Name="TotalTimeText" Text="00:00" FontSize="11" Foreground="#94A3B8" Margin="8,0,0,0"/>
                                     </Grid>
 
