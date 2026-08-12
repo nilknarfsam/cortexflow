@@ -1,8 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "6FvZFPezEss=",
+  "dgSpecHash": "o9LNxwM2q+Q=",
   "success": true,
   "projectFilePath": "C:\\src\\projects\\cortexflow\\src\\CortexFlow.Infrastructure\\CortexFlow.Infrastructure.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\fcampos\\.nuget\\packages\\cliwrap\\3.10.4\\cliwrap.3.10.4.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\documentformat.openxml\\3.5.1\\documentformat.openxml.3.5.1.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\documentformat.openxml.framework\\3.5.1\\documentformat.openxml.framework.3.5.1.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\microsoft.extensions.ai.abstractions\\10.2.0\\microsoft.extensions.ai.abstractions.10.2.0.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\pdfpig\\0.1.15\\pdfpig.0.1.15.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\system.io.packaging\\8.0.1\\system.io.packaging.8.0.1.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\system.io.pipelines\\10.0.2\\system.io.pipelines.10.0.2.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\system.text.encodings.web\\10.0.2\\system.text.encodings.web.10.0.2.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\system.text.json\\10.0.2\\system.text.json.10.0.2.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\whisper.net\\1.9.1\\whisper.net.1.9.1.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\whisper.net.runtime\\1.9.1\\whisper.net.runtime.1.9.1.nupkg.sha512",
+    "C:\\Users\\fcampos\\.nuget\\packages\\whisper.net.runtime.metal\\1.9.1\\whisper.net.runtime.metal.1.9.1.nupkg.sha512"
+  ],
   "logs": []
 }

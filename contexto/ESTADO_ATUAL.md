@@ -18,10 +18,11 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 |---|---|
 | Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 |
 | Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure` e `CortexFlow.Core.Tests` |
-| Testes C# | 4 testes `xUnit` aprovados em `CortexFlow.Core.Tests` |
+| Testes C# | 6 testes `xUnit` aprovados em `CortexFlow.Core.Tests` (100% OK) |
+| Infraestrutura C# | `WhisperTranscriptionService` (`Whisper.net`), `DocumentExtractorService` (`PdfPig`/`OpenXml`), `WindowsOcrService` |
+| Apresentação C# | `MainViewModel` (MVVM) integrado com a fila assíncrona |
 | Base Legada | Python 3.12 mantido em `legacy_python/` com 63 testes `unittest` verdes |
-| Motor de Transcrição | `Whisper.net` (`whisper.cpp`) planejado para substituir PyTorch |
-| OCR | `Windows.Media.Ocr` planejado para substituir Tesseract |
+
 
 
 ## Pontos fortes

@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CortexFlow.Core\CortexFlow.Core.csproj" />
+    <ProjectReference Include="..\..\src\CortexFlow.Infrastructure\CortexFlow.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

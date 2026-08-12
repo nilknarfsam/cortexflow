@@ -7,8 +7,13 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Aprovada a migração para a nova arquitetura em **C# .NET 9 e WinUI 3**.
 - Código Python original movido para `legacy_python/` via `git mv`, preservando histórico e os 63 testes unitários verdes.
 - Criada a nova solução `CortexFlow.sln` com os projetos `CortexFlow.Core`, `CortexFlow.Infrastructure` e `CortexFlow.Core.Tests`.
-- Implementadas abstrações (`ITranscriptionService`, `ICacheService`, `IQueueManager`, `IExportService`), modelos (`QueueItem`, `TranscriptionResult`, `JobSettings`) e serviços de cache SHA-256 e exportação em C#.
-- Adicionados 4 testes automatizados xUnit em `tests/CortexFlow.Core.Tests`, todos aprovados.
+- Instalados os pacotes NuGet `Whisper.net`, `Whisper.net.Runtime`, `CliWrap`, `PdfPig` e `DocumentFormat.OpenXml`.
+- Implementado o `WhisperTranscriptionService` usando `Whisper.net` (`whisper.cpp`) com download de modelos GGML sob demanda.
+- Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
+- Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
+- Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
+- Expandida a suíte de testes em xUnit para 6 testes automatizados aprovados (100% OK).
+
 - Criado o guia reutilizável `docs/GUIAMAESTRO_AVALIACAO_TECNOLOGICA.md` para avaliação de stack em futuros projetos.
 - Registrada a decisão DEC-003.
 - Próximo passo: Integrar o pacote `Whisper.net` no `CortexFlow.Infrastructure` para a prova de conceito de transcrição.
