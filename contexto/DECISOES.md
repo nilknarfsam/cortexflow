@@ -3,6 +3,15 @@
 Decisões mais recentes devem ser adicionadas no topo. Use um identificador
 sequencial e preserve decisões substituídas como histórico.
 
+## DEC-003 — Migração de arquitetura para C# .NET 9 e WinUI 3
+
+- Data: 2026-08-12
+- Status: aceita
+- Contexto: A versão em Python (CustomTkinter + PyTorch + PyInstaller) serviu como protótipo funcional bem-sucedido, mas gera um executável de ~3 GB, consumo alto de RAM e limitações de interface.
+- Decisão: Migrar a aplicação para C# .NET 9 com WinUI 3, utilizando `Whisper.net` (`whisper.cpp`) e `Windows.Media.Ocr`. Mover a base legada em Python para `legacy_python/` mantendo histórico e testes funcionais durante a transição.
+- Consequências: Redução de ~90% no tamanho da aplicação (~200 MB), interface nativa do Windows 11 sem travamentos, concorrência assíncrona robusta via MVVM/Channels e tipagem estática.
+
+
 ## DEC-002 — Preservar patch global de subprocessos com isolamento
 
 - Data: 2026-07-29

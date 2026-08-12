@@ -1,0 +1,12 @@
+C:\src\projects\cortexflow\src\CortexFlow.Core\bin\Debug\net9.0\CortexFlow.Core.deps.json
+C:\src\projects\cortexflow\src\CortexFlow.Core\bin\Debug\net9.0\CortexFlow.Core.dll
+C:\src\projects\cortexflow\src\CortexFlow.Core\bin\Debug\net9.0\CortexFlow.Core.pdb
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.AssemblyInfoInputs.cache
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.AssemblyInfo.cs
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.csproj.CoreCompileInputs.cache
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.sourcelink.json
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.dll
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\refint\CortexFlow.Core.dll
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\CortexFlow.Core.pdb
+C:\src\projects\cortexflow\src\CortexFlow.Core\obj\Debug\net9.0\ref\CortexFlow.Core.dll

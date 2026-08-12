@@ -1,0 +1,16 @@
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\bin\Debug\net9.0\CortexFlow.Infrastructure.deps.json
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\bin\Debug\net9.0\CortexFlow.Infrastructure.dll
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\bin\Debug\net9.0\CortexFlow.Infrastructure.pdb
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\bin\Debug\net9.0\CortexFlow.Core.dll
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\bin\Debug\net9.0\CortexFlow.Core.pdb
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.csproj.AssemblyReference.cache
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.AssemblyInfoInputs.cache
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.AssemblyInfo.cs
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.csproj.CoreCompileInputs.cache
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.sourcelink.json
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFl.18A30910.Up2Date
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.dll
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\refint\CortexFlow.Infrastructure.dll
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\CortexFlow.Infrastructure.pdb
+C:\src\projects\cortexflow\src\CortexFlow.Infrastructure\obj\Debug\net9.0\ref\CortexFlow.Infrastructure.dll

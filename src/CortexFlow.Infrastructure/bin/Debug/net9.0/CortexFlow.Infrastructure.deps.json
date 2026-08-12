@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "CortexFlow.Infrastructure/1.0.0": {
+        "dependencies": {
+          "CortexFlow.Core": "1.0.0"
+        },
+        "runtime": {
+          "CortexFlow.Infrastructure.dll": {}
+        }
+      },
+      "CortexFlow.Core/1.0.0": {
+        "runtime": {
+          "CortexFlow.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "CortexFlow.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CortexFlow.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

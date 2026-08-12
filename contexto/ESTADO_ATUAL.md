@@ -1,38 +1,28 @@
 # Estado atual
 
-Última revisão: 2026-07-29
+Última revisão: 2026-08-12
 
 ## Produto
 
-CortexFlow 3.0.4 é uma aplicação desktop local em Python para transcrever áudio
-e vídeo e extrair conteúdo de documentos e imagens. A interface usa
-CustomTkinter, e o processamento de mídia usa OpenAI Whisper e FFmpeg.
+CortexFlow está em processo de migração de arquitetura para **C# .NET 9 com WinUI 3**. A base legada em Python 3.12 (CustomTkinter) foi preservada sob `legacy_python/` com todos os 63 testes unitários mantidos e operacionais.
 
-O fluxo principal está concentrado em:
-
-- `app.py`: preparação do runtime e entrada da aplicação.
-- `src/ui/main_window.py`: janela principal.
-- `src/core/queue_manager.py`: fila, worker, persistência e callbacks.
-- `src/core/job_processor.py`: pipeline de processamento de cada item.
-- `src/core/transcription_service.py`: integração com Whisper.
-- `src/core/extraction_service.py`: documentos e OCR.
-- `src/core/export_service.py` e `src/ai_ready/`: formatos de saída.
+O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
+- `src/CortexFlow.Core`: Modelos de domínio (`QueueItem`, `TranscriptionResult`, `JobSettings`), abstrações (`ITranscriptionService`, `ICacheService`, `IQueueManager`, `IExportService`), serviços de cache SHA-256 e exportador.
+- `src/CortexFlow.Infrastructure`: Implementações de mídia e integração de sistema.
+- `tests/CortexFlow.Core.Tests`: Testes automatizados em xUnit (4 testes xUnit aprovados).
+- `legacy_python/`: Protótipo original em Python 3.12 preservado para referência e migração gradual.
 
 ## Fotografia técnica
 
-| Indicador | Estado em 2026-07-29 |
+| Indicador | Estado em 2026-08-12 |
 |---|---|
-| Branch | `main`, alinhada com `origin/main` no momento da revisão |
-| Código Python | 134 arquivos e aproximadamente 14.600 linhas em `src/` |
-| Testes | 63 testes `unittest`, todos aprovados com Python 3.12 |
-| Compilação | `compileall` aprovado |
-| Tooling | `pyproject.toml`, Ruff, coverage e GitHub Actions configurados |
-| Dependências | Dependências diretas fixadas nas versões validadas; Python 3.12 como alvo oficial |
-| Build | PyInstaller 6.21.0 em modo one-directory; artefato e smoke test aprovados |
-| FFmpeg local | `ffmpeg.exe` e `ffprobe.exe` 8.1.1 disponíveis em `bin/` e ignorados pelo Git |
-| Execução da GUI | Validada em 2026-07-28 com Python 3.12; janela `CortexFlow 3.0.4` abriu e permaneceu responsiva |
-| Dados locais | JSON, cache e logs sob `data/`; arquivos de runtime principais ignorados |
-| UI legada | Seis módulos mantidos em `src/ui/legacy_ui/` |
+| Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 |
+| Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure` e `CortexFlow.Core.Tests` |
+| Testes C# | 4 testes `xUnit` aprovados em `CortexFlow.Core.Tests` |
+| Base Legada | Python 3.12 mantido em `legacy_python/` com 63 testes `unittest` verdes |
+| Motor de Transcrição | `Whisper.net` (`whisper.cpp`) planejado para substituir PyTorch |
+| OCR | `Windows.Media.Ocr` planejado para substituir Tesseract |
+
 
 ## Pontos fortes
 
