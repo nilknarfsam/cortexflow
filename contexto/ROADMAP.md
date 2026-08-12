@@ -6,7 +6,7 @@ Execução detalhada: [`PLANO_EXECUCAO.md`](PLANO_EXECUCAO.md) e `contexto/ESTAD
 
 ## Visão
 
-Evoluir o CortexFlow de um protótipo Python para um produto desktop profissional de alta performance em **C# / .NET 9 (WinUI 3 / WPF Fluent)**, garantindo processamento 100% offline, tamanho de instalador reduzido (de 3GB para 200MB) e interface de conversa e transcrição de mídias de alto nível.
+Evoluir o CortexFlow para um produto desktop profissional de alta performance em **C# / .NET 9 (WinUI 3 / WPF Fluent)**, garantindo processamento 100% offline, tamanho de instalador reduzido (200MB) e interface de conversão, transcrição e estudo de mídias de nível Studio.
 
 ## Horizonte 1 — Base confiável (Concluído)
 
@@ -26,20 +26,29 @@ Evoluir o CortexFlow de um protótipo Python para um produto desktop profissiona
 
 ## Horizonte 3 — Nova Arquitetura C# / .NET 9 (Concluído)
 
-- [Concluído] Reorganizar a estrutura mantendo a base legada isolada em `legacy_python/`.
-- [Concluído] Criar solução C# .NET 9 (`CortexFlow.sln`) com arquitetura limpa desacoplada:
-  - `CortexFlow.Core`: Abstrações, Modelos, Domínio e MVVM (`MainViewModel`).
-  - `CortexFlow.Infrastructure`: `WhisperTranscriptionService` (`Whisper.net`), `AudioPreProcessor` (FFmpeg), `DocumentExtractorService` (PdfPig / OpenXml) e `WindowsOcrService`.
-  - `CortexFlow.UI`: Interface WPF/WinUI 3 nativa estilo **Conversor de Mídia Profissional**.
-  - `tests/CortexFlow.Core.Tests`: Suíte de testes automatizados `xUnit` (15 testes passando em 79ms).
-- [Concluído] Pré-processamento FFmpeg automático para converter qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) em WAV 16kHz mono, eliminando o erro *Invalid wave file RIFF header*.
-- [Concluído] Suporte a exportação multi-formato (`.md`, `.txt`, `.json`, `.pdf`), seletor de pasta customizada e salvamento na pasta do arquivo de origem.
-- [Concluído] Modal de Configurações Avançadas e Diagnósticos do Ambiente (`SettingsWindow.xaml`).
-- [Concluído] Janela Visualizadora de Resultados com abas de transcrição e linha do tempo de timestamps (`ResultWindow.xaml`).
-- [Concluído] GitHub Actions CI/CD automatizado em .NET 9 (`.github/workflows/quality.yml`).
+- [Concluído] Criar solução C# .NET 9 (`CortexFlow.sln`) com arquitetura limpa desacoplada (`Core`, `Infrastructure`, `UI`, `Core.Tests`).
+- [Concluído] Pré-processamento FFmpeg automático para converter qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) em WAV 16kHz mono (`AudioPreProcessor.cs`).
+- [Concluído] Suporte a exportação multi-formato (`.md`, `.txt`, `.json`, `.pdf`), salvamento na pasta de origem ou customizada.
+- [Concluído] Tradução automática de idiomas (`.WithTranslate()`) via `Whisper.net`.
+- [Concluído] Formatação da transcrição em **Blocos de Tempo (30s)** e parágrafos legíveis.
+- [Concluído] Manual do Usuário interativo em XAML (`HelpWindow.xaml` acessível via `F1`).
+- [Concluído] Remoção completa do código legado Python e pipeline GitHub Actions 100% em .NET 9.
 
-## Horizonte 4 — Próximos Recursos Avançados (Em Planejamento)
+## Horizonte 4 — Próximas Evoluções Estratégicas (Em Planejamento)
 
-- [ ] Suporte a múltiplos idiomas na detecção automática e tradução nativa do Whisper.
-- [ ] Exportação de relatórios estendidos com mapas mentais / gráficos de conhecimento visual.
-- [ ] Empacotamento para distribuição Windows (Instalador MSIX / Portable zip).
+### 🎨 Dimensão 1: UI/UX & Interatividade Visual
+- [ ] **Player de Áudio/Vídeo Sincronizado:** Mini-player integrado na `ResultWindow.xaml` onde clicar em um timestamp `⏱️ [02:15]` pula o áudio/vídeo para o ponto exato.
+- [ ] **Diarização de Locutores:** Identificação automática de quem falou (`Locutor 1:`, `Locutor 2:`) em podcasts e entrevistas.
+- [ ] **Visualizador de Grafo Interativo:** Árvore gráfica de conceitos e nós semânticos com zoom e arraste.
+
+### ⚡ Dimensão 2: Hardware Acceleration & Engine
+- [ ] **Monitor de GPU em Tempo Real:** Leitura dinâmica de VRAM (NVIDIA CUDA / AMD DirectML) exibida na StatusBar.
+- [ ] **Gerenciador de Modelos Whisper:** Aba para visualizar, baixar e excluir arquivos `.bin` de modelos (`tiny` a `large-v3`).
+
+### 🧠 Dimensão 3: Inteligência Acadêmica & Integração IA Local
+- [ ] **Exportação para Anki (`.apkg` / `.csv`):** Exportação direta dos Flashcards para o aplicativo Anki.
+- [ ] **Integração com Ollama Local (RAG 100% Offline):** Suporte opcional a modelos LLM rodando na máquina local para perguntas e respostas.
+
+### 📦 Dimensão 4: Empacotamento & Distribuição Windows
+- [ ] **Build Standalone Self-Contained:** Executável `win-x64` sem necessidade de instalar o .NET 9 SDK na máquina do cliente.
+- [ ] **Instalador executável leve (`CortexFlow_Setup.exe`).**
