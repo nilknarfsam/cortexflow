@@ -9,6 +9,8 @@ using System.Windows.Threading;
 using CortexFlow.Core.Models;
 using CortexFlow.Core.Services;
 using CortexFlow.Core.ViewModels;
+using CortexFlow.Infrastructure.AI;
+using CortexFlow.Infrastructure.Diagnostics;
 using CortexFlow.Infrastructure.Extraction;
 using CortexFlow.Infrastructure.Media;
 using Microsoft.Win32;
@@ -47,6 +49,18 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromMilliseconds(200)
         };
         _playerTimer.Tick += PlayerTimer_Tick;
+
+        // Timer de Monitoramento de GPU e Sistema na StatusBar (a cada 3 segundos)
+        var gpuTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(3)
+        };
+        gpuTimer.Tick += async (s, e) =>
+        {
+            var summary = await SystemPerformanceService.GetSystemStatusSummaryAsync();
+            StatusGpuText.Content = summary;
+        };
+        gpuTimer.Start();
 
         KeyDown += MainWindow_KeyDown;
     }
@@ -285,6 +299,38 @@ public partial class MainWindow : Window
                 SyncCurrentSegmentToVideo();
             }
         }
+    }
+
+    private async void OllamaSummary_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentLoadedResult == null || string.IsNullOrWhiteSpace(_currentLoadedResult.FullText))
+        {
+            MessageBox.Show("Nenhuma transcrição válida carregada no momento.", "Ollama Local", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var ollamaService = new OllamaService();
+        var isAvailable = await ollamaService.IsOllamaAvailableAsync();
+
+        if (!isAvailable)
+        {
+            MessageBox.Show("O Ollama não foi detectado em execução no seu computador (http://localhost:11434).\n\nPara usar este recurso 100% offline, instale o Ollama em https://ollama.com e execute 'ollama run llama3' no terminal.", "Ollama Local Desconectado", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        PlayerStatusText.Text = "🧠 Gerando resumo com IA Ollama Local...";
+        PlayerStatusText.Foreground = System.Windows.Media.Brushes.MediumPurple;
+
+        var summary = await ollamaService.GenerateSummaryAsync(_currentLoadedResult.FullText);
+
+        PlayerResultTextBox.Text = $"--- RESUMO OLLAMA LOCAL ---\n{summary}\n\n--- TRANSCRIÇÃO COMPLETA ---\n{_currentLoadedResult.FullText}";
+        PlayerTimestampsGrid.Visibility = Visibility.Collapsed;
+        PlayerResultTextBox.Visibility = Visibility.Visible;
+        ToggleViewBtn.Content = "⏱️ Ver Falas Sincronizadas";
+        _isTextModeVisible = true;
+
+        PlayerStatusText.Text = "✅ Resumo gerado com sucesso via Ollama Local!";
+        PlayerStatusText.Foreground = System.Windows.Media.Brushes.MediumSeaGreen;
     }
 
     private void CopyPlayerText_Click(object sender, RoutedEventArgs e)

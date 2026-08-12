@@ -210,16 +210,18 @@
 
                                 <StackPanel Margin="0,0,12,0">
                                     <TextBlock Text="Formato Arquivo:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2"/>
-                                    <ComboBox x:Name="FormatCombo" SelectedIndex="0" Width="125">
+                                    <ComboBox x:Name="FormatCombo" SelectedIndex="0" Width="135">
                                         <ComboBoxItem Content="Markdown (.md)"/>
                                         <ComboBoxItem Content="Texto (.txt)"/>
                                         <ComboBoxItem Content="JSON (.json)"/>
                                         <ComboBoxItem Content="PDF (.pdf)"/>
+                                        <ComboBoxItem Content="Anki Cards (.csv)"/>
                                     </ComboBox>
                                 </StackPanel>
 
                                 <StackPanel VerticalAlignment="Center" Margin="5,0,0,0">
                                     <CheckBox x:Name="TranslateCheck" Content="🌐 Traduzir para Português" Foreground="#38BDF8" FontSize="11" Margin="0,0,0,2"/>
+                                    <CheckBox x:Name="DiarizationCheck" Content="👥 Identificar Locutores" Foreground="#F59E0B" FontSize="11" Margin="0,0,0,2" ToolTip="Agrupar falas por locutor [Locutor A], [Locutor B]"/>
                                     <CheckBox x:Name="SameFolderCheck" Content="📁 Salvar na pasta original" IsChecked="True" Foreground="#F1F5F9" FontSize="11" Checked="SameFolderCheck_Changed" Unchecked="SameFolderCheck_Changed"/>
                                 </StackPanel>
                             </StackPanel>
@@ -267,6 +269,7 @@
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button x:Name="ToggleViewBtn" Content="📖 Ver Texto Corrido" Click="ToggleViewBtn_Click" Background="#334155" Foreground="White" Padding="10,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Alternar para texto corrido formatado em parágrafos"/>
                                 <Button x:Name="SyncButton" Content="🎯 Sincronizar com Vídeo" Click="SyncButton_Click" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Rolar para o trecho falado no momento"/>
+                                <Button Content="🦙 Ollama LLM" Click="OllamaSummary_Click" Background="#8B5CF6" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0" ToolTip="Gerar resumo executivo via Ollama Local (100% Offline)"/>
                                 <Button Content="📋 Copiar Texto" Click="CopyPlayerText_Click" Background="#0EA5E9" Foreground="White" FontWeight="Bold" Padding="12,6" Margin="0,0,8,0" BorderThickness="0"/>
                                 <Button Content="📁 Pasta de Saída" Click="OpenExportFolder_Click" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="12,6" BorderThickness="0"/>
                             </StackPanel>

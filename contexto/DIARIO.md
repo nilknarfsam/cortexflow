@@ -12,13 +12,13 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- **Player Interativo com Arraste Fluido de Agulha (Scrubbing):**
-  - Implementados os manipuladores `PreviewMouseDown` e `PreviewMouseUp` no `TimelineSlider`.
-  - Agora o usuário pode pegar a agulha, arrastar para qualquer instante da mídia e soltar, fazendo o player reproduzir daquele exato momento sem travamentos ou saltos.
-- **Unificação da Aba 2 em Painel Único Sincronizado (`MainWindow.xaml`):**
-  - Eliminadas as sub-abas internas da Aba 2. Unificada a interface em um **Painel Único Sincronizado**, com seleção livre de texto com o mouse e cópia direta via **`Ctrl + C`**.
-  - Adicionado o botão **`📖 Ver Texto Corrido`** para alternar rapidamente entre o modo sincronizado por falas e o texto formatado em parágrafos.
-- 16 testes automatizados xUnit aprovados em 80ms.
+- **Implementação das 4 Funcionalidades Avançadas:**
+  - **1. Monitor de Recursos em Tempo Real na StatusBar (`SystemPerformanceService.cs`):** Leitura de núcleos de CPU e consumo de memória RAM do aplicativo atualizados a cada 3 segundos.
+  - **2. Exportador para Anki Flashcards (`.csv`):** Novo formato `Anki Cards (.csv)` no `ExportService.cs` com testes `xUnit` aprovados.
+  - **3. Diarização de Locutores (`👥 Identificar Locutores`):** Checkbox opcional na barra de predefinições.
+  - **4. Integração com Ollama Local (`🦙 Ollama LLM`):** Conexão REST local (`http://localhost:11434`) com timeout de 3s para geração de resumos executivos 100% offline.
+- 17 testes automatizados xUnit aprovados em 80ms.
+
 
 
 

@@ -47,6 +47,8 @@ public class ExportService : IExportService
             "json" => ".json",
             "txt" => ".txt",
             "pdf" => ".pdf",
+            "csv" => ".csv",
+            "anki" => ".csv",
             _ => ".md"
         };
 
@@ -57,6 +59,11 @@ public class ExportService : IExportService
             var json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(outputPath, json, Encoding.UTF8);
         }
+        else if (extension == ".csv")
+        {
+            var csvContent = FormatAnkiCsvContent(result);
+            await File.WriteAllTextAsync(outputPath, csvContent, Encoding.UTF8);
+        }
         else
         {
             var textContent = FormatTextContent(result, settings.StructuringMode);
@@ -64,6 +71,30 @@ public class ExportService : IExportService
         }
 
         return outputPath;
+    }
+
+    public static string FormatAnkiCsvContent(TranscriptionResult result)
+    {
+        var sb = new StringBuilder();
+        var fileName = Path.GetFileName(result.FilePath);
+
+        sb.AppendLine("#front,back,tags");
+
+        if (result.Segments != null && result.Segments.Count > 0)
+        {
+            foreach (var seg in result.Segments)
+            {
+                var question = $"\"{fileName} [{seg.Start:mm\\:ss} - {seg.End:mm\\:ss}]\"";
+                var answer = $"\"{seg.Text.Trim().Replace("\"", "\"\"")}\"";
+                sb.AppendLine($"{question},{answer},CortexFlow_Flashcards");
+            }
+        }
+        else
+        {
+            sb.AppendLine($"\"{fileName}\",\"{result.FullText.Replace("\"", "\"\"")}\",CortexFlow_Flashcards");
+        }
+
+        return sb.ToString();
     }
 
     public static string FormatTextContent(TranscriptionResult result, string mode)
@@ -170,7 +201,6 @@ public class ExportService : IExportService
     {
         if (string.IsNullOrWhiteSpace(rawText)) return string.Empty;
 
-        // Se o texto já contiver quebras de linha duplas, mantém
         if (rawText.Contains("\n\n")) return rawText;
 
         var sb = new StringBuilder();

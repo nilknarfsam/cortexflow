@@ -18,18 +18,20 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 |---|---|
 | Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 / WPF Fluent |
 | Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure`, `CortexFlow.UI` e `CortexFlow.Core.Tests` |
-| Player Interativo (Scrubbing) | Slider de linha do tempo com suporte a **arraste de agulha fluido** (`PreviewMouseDown`/`PreviewMouseUp`), permitindo soltar a agulha em qualquer instante e continuar a reprodução sem saltos involuntários |
-| Painel Único Sincronizado | Aba 2 unificada em um **único painel limpo**, com seleção livre de texto, suporte nativo a **`Ctrl + C`**, destaque azul ativo em tempo real e botão de alternância **`📖 Ver Texto Corrido`** |
+| Monitor de GPU na StatusBar | `SystemPerformanceService.cs` atualiza a StatusBar a cada 3s com uso de cores de CPU, RAM do App e aceleradores locais |
+| Exportador Anki Cards (.csv) | Formato `Anki Cards (.csv)` no `ExportService.cs` para exportação direta de flashcards prontos para o aplicativo Anki |
+| Diarização de Locutores | Checkbox opcional **`👥 Identificar Locutores`** na Fila para separação visual de falantes |
+| Integração Ollama Local (RAG) | Botão **`🦙 Ollama LLM`** na Aba 2 para conexão com LLM local (`http://localhost:11434`) com timeout de 3s e 100% offline |
+| Player Interativo (Scrubbing) | Slider de linha do tempo com suporte a **arraste de agulha fluido** (`PreviewMouseDown`/`PreviewMouseUp`), sem saltos involuntários |
+| Painel Único Sincronizado | Aba 2 unificada em um **único painel limpo**, com seleção livre de texto, suporte nativo a **`Ctrl + C`** e destaque azul ativo |
 | Arquitetura em Abas Estúdio | **`MainWindow.xaml`** reestruturada em **2 Abas Principais (Estúdio Integrado)** |
 | Formatação de Transcrição | Modo **`Time Blocks (Blocos de Tempo de 30s)`** (`### ⏱️ [MM:SS - MM:SS]`) + parágrafos formatados no modo `Clean` |
 | Manual do Usuário (XAML) | **`HelpWindow.xaml`** (F1) com 5 abas intuitivas: Início Rápido, Predefinições, Modelos Whisper, Atalhos de Teclado, Privacidade & 5S |
 | Diretrizes de Qualidade | Documento `docs/DESENVOLVIMENTO_5S_KPIS_SEGURANCA.md` cobrindo 5S, KPIs e matriz de risco de performance |
 | Estilo Dark Mode dos Menus | Estilização XAML de `MenuItem` (`Background="#1E293B" Foreground="#F8FAFC"` e highlight `#0EA5E9`), 100% legível |
 | Atalho de Execução | `run_app.bat` e `setup_and_run.bat` (ASCII puro) com rebuild automático a cada execução |
-| Tradução Automática | Suporte nativo ao `.WithTranslate()` do `Whisper.net` via checkbox **`TranslateCheck`** |
-| GitHub Actions CI/CD | Pipeline `.github/workflows/quality.yml` atualizado para **100% .NET 9 (Restore, Build Release, xUnit)** |
-| Pré-processador de Mídia | **`AudioPreProcessor` (FFmpeg)** converte automaticamente qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) para WAV 16kHz mono |
-| Testes C# | **16 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 80ms) |
+| Testes C# | **17 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 80ms) |
+
 
 
 
