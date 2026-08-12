@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -25,3 +26,13 @@ data/logs/*.log.*
 _archive/
 bin/*.exe
 bin/tessdata/
+
+# .NET / C#
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
