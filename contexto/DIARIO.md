@@ -12,10 +12,15 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Implementado o modal de configurações avançadas e diagnósticos **`SettingsWindow.xaml`** com opção de alternar entre aceleração GPU/CPU, botão de limpar cache de transcrição e relatório em tempo real do ambiente técnico.
-- Integrado o botão **"⚙️ Avançado & Diagnóstico"** no cabeçalho da `MainWindow.xaml`.
-- Realizada varredura de estabilidade e verificações de segurança contra nulos em toda a solução .NET 9.
-- 13 testes xUnit aprovados e solução .NET 9 compilando 100% verde.
+- Implementado o **`AudioPreProcessor.cs`** via FFmpeg (`CliWrap`) para pré-processar e converter automaticamente qualquer arquivo de áudio/vídeo (`.mp4`, `.mp3`, `.mkv`) em WAV PCM 16kHz mono, eliminando 100% o erro *Invalid wave file RIFF header*.
+- Redesenhada a `MainWindow.xaml` no **estilo Conversor de Mídia Profissional**:
+  - Barra de Ferramentas Superior compacta com `➕ Adicionar Arquivos`, `📁 Adicionar Pasta Inteira`, `🗑️ Remover Selecionados`.
+  - Tabela de Fila de Transcrição expandida com cabeçalho de alto contraste (`#FFFFFF` em fundo `#1E293B`).
+  - Adicionada coluna de Ações por linha com botão `❌` para remover o item específico da fila e `👁️` para ver o resultado.
+  - Adicionada a opção `"Salvar na mesma pasta do arquivo de origem"` (marcada por padrão) + opção de pasta customizada.
+- Atualizado o `.gitignore` para ignorar mídias e vídeos de teste (`*.mp4`, `*.mp3`, `teste.mp4`).
+- Suíte de testes xUnit expandida para **15 testes automatizados aprovados (100% OK em 79ms)**.
+
 
 
 

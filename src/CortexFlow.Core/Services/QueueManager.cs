@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using CortexFlow.Core.Abstractions;
 using CortexFlow.Core.Models;
@@ -13,6 +11,12 @@ namespace CortexFlow.Core.Services;
 
 public class QueueManager : IQueueManager
 {
+    private static readonly string[] SupportedExtensions = new[]
+    {
+        ".mp3", ".wav", ".mp4", ".mkv", ".avi", ".flac", ".m4a", ".aac",
+        ".pdf", ".docx", ".txt", ".md", ".jpg", ".jpeg", ".png", ".tmp"
+    };
+
     private readonly List<QueueItem> _items = new();
     private readonly ITranscriptionService _transcriptionService;
     private readonly ICacheService _cacheService;
@@ -37,7 +41,12 @@ public class QueueManager : IQueueManager
         foreach (var path in filePaths)
         {
             if (!File.Exists(path)) continue;
-            
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            if (!SupportedExtensions.Contains(ext)) continue;
+
+            // Evita duplicados na fila
+            if (_items.Any(i => i.FilePath.Equals(path, StringComparison.OrdinalIgnoreCase))) continue;
+
             var fileInfo = new FileInfo(path);
             var item = new QueueItem
             {
@@ -51,10 +60,32 @@ public class QueueManager : IQueueManager
         }
     }
 
+    public void AddFolder(string folderPath, bool recursive = true)
+    {
+        if (!Directory.Exists(folderPath)) return;
+
+        var option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        var files = Directory.GetFiles(folderPath, "*.*", option)
+            .Where(f => SupportedExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
+
+        AddFiles(files);
+    }
+
     public void RemoveItem(string itemId)
     {
         var item = _items.FirstOrDefault(i => i.Id == itemId);
         if (item != null)
+        {
+            _items.Remove(item);
+            OnItemUpdated(item);
+        }
+    }
+
+    public void RemoveItems(IEnumerable<string> itemIds)
+    {
+        var idsToRemove = itemIds.ToList();
+        var itemsToRemove = _items.Where(i => idsToRemove.Contains(i.Id)).ToList();
+        foreach (var item in itemsToRemove)
         {
             _items.Remove(item);
             OnItemUpdated(item);
@@ -104,7 +135,7 @@ public class QueueManager : IQueueManager
                 }
                 else
                 {
-                    // 2. Transcrição Real
+                    // 2. Transcrição / Extração Real
                     var progressReporter = new Progress<double>(p =>
                     {
                         item.Progress = 0.1 + (p * 0.7);
@@ -121,11 +152,12 @@ public class QueueManager : IQueueManager
                 }
 
                 // 3. Exportação
-                await _exportService.ExportAsync(result, settings);
+                var exportedPath = await _exportService.ExportAsync(result, settings);
 
                 item.Result = result;
                 item.Progress = 1.0;
                 item.Status = QueueItemStatus.Completed;
+                item.ErrorMessage = $"Salvo: {Path.GetFileName(exportedPath)}";
                 item.CompletedAt = DateTime.UtcNow;
             }
             catch (OperationCanceledException)

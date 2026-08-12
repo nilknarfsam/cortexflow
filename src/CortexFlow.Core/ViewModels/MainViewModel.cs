@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CortexFlow.Core.Abstractions;
@@ -31,6 +33,30 @@ public class MainViewModel : INotifyPropertyChanged
     public void AddFiles(string[] filePaths)
     {
         _queueManager.AddFiles(filePaths);
+        RefreshQueue();
+    }
+
+    public void AddFolder(string folderPath)
+    {
+        _queueManager.AddFolder(folderPath);
+        RefreshQueue();
+    }
+
+    public void RemoveItem(string itemId)
+    {
+        _queueManager.RemoveItem(itemId);
+        RefreshQueue();
+    }
+
+    public void RemoveItems(IEnumerable<string> itemIds)
+    {
+        _queueManager.RemoveItems(itemIds);
+        RefreshQueue();
+    }
+
+    public void ClearQueue()
+    {
+        _queueManager.ClearQueue();
         RefreshQueue();
     }
 

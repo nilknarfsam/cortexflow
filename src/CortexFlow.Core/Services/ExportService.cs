@@ -12,9 +12,27 @@ public class ExportService : IExportService
 {
     public async Task<string> ExportAsync(TranscriptionResult result, JobSettings settings)
     {
-        var outputDir = string.IsNullOrWhiteSpace(settings.ExportDirectory)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CortexFlow_Exports")
-            : settings.ExportDirectory;
+        string outputDir;
+
+        if (settings.ExportToSourceFolder && !string.IsNullOrWhiteSpace(result.FilePath))
+        {
+            var dir = Path.GetDirectoryName(result.FilePath);
+            if (string.IsNullOrWhiteSpace(dir))
+            {
+                dir = Path.GetDirectoryName(Path.GetFullPath(result.FilePath));
+            }
+            outputDir = !string.IsNullOrWhiteSpace(dir)
+                ? dir
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CortexFlow_Exports");
+        }
+        else if (!string.IsNullOrWhiteSpace(settings.ExportDirectory))
+        {
+            outputDir = settings.ExportDirectory;
+        }
+        else
+        {
+            outputDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CortexFlow_Exports");
+        }
 
         if (!Directory.Exists(outputDir))
         {

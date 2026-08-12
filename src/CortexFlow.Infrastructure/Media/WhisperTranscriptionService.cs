@@ -14,8 +14,9 @@ namespace CortexFlow.Infrastructure.Media;
 public class WhisperTranscriptionService : ITranscriptionService
 {
     private readonly string _modelsDirectory;
+    private readonly AudioPreProcessor _audioPreProcessor;
 
-    public WhisperTranscriptionService(string? modelsDirectory = null)
+    public WhisperTranscriptionService(string? modelsDirectory = null, AudioPreProcessor? audioPreProcessor = null)
     {
         _modelsDirectory = modelsDirectory ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -26,6 +27,8 @@ public class WhisperTranscriptionService : ITranscriptionService
         {
             Directory.CreateDirectory(_modelsDirectory);
         }
+
+        _audioPreProcessor = audioPreProcessor ?? new AudioPreProcessor();
     }
 
     public async Task<TranscriptionResult> TranscribeAsync(
@@ -60,37 +63,60 @@ public class WhisperTranscriptionService : ITranscriptionService
             await modelStream.CopyToAsync(fileStream, cancellationToken);
         }
 
-        // 2. Carregar Fábrica do Whisper
-        using var factory = WhisperFactory.FromPath(modelPath);
-        using var processor = factory.CreateBuilder()
-            .WithLanguage(settings.Language)
-            .Build();
-
-        // 3. Processar Áudio
-        await using var audioStream = File.OpenRead(audioOrVideoPath);
-        var result = new TranscriptionResult
+        // 2. Pré-processar Mídia com FFmpeg (Converter para 16kHz 16-bit mono WAV)
+        progress?.Report(0.08);
+        string? convertedWavPath = null;
+        try
         {
-            FilePath = audioOrVideoPath,
-            Language = settings.Language
-        };
-
-        var fullTextBuilder = new StringBuilder();
-
-        await foreach (var segment in processor.ProcessAsync(audioStream, cancellationToken))
+            convertedWavPath = await _audioPreProcessor.ConvertTo16kHzWavAsync(audioOrVideoPath, cancellationToken);
+        }
+        catch
         {
-            fullTextBuilder.Append(segment.Text);
-
-            result.Segments.Add(new TranscriptionSegment
-            {
-                Start = segment.Start,
-                End = segment.End,
-                Text = segment.Text
-            });
-
-            progress?.Report(0.1 + (segment.End.TotalSeconds / 300.0 * 0.8));
+            // Se falhar o pré-processamento (ex: se o arquivo já for WAV), tenta diretamente
+            convertedWavPath = audioOrVideoPath;
         }
 
-        result.FullText = fullTextBuilder.ToString().Trim();
-        return result;
+        // 3. Carregar Fábrica do Whisper e Processar Áudio 16kHz
+        try
+        {
+            using var factory = WhisperFactory.FromPath(modelPath);
+            using var processor = factory.CreateBuilder()
+                .WithLanguage(settings.Language)
+                .Build();
+
+            await using var audioStream = File.OpenRead(convertedWavPath);
+            var result = new TranscriptionResult
+            {
+                FilePath = audioOrVideoPath,
+                Language = settings.Language
+            };
+
+            var fullTextBuilder = new StringBuilder();
+
+            await foreach (var segment in processor.ProcessAsync(audioStream, cancellationToken))
+            {
+                fullTextBuilder.Append(segment.Text);
+
+                result.Segments.Add(new TranscriptionSegment
+                {
+                    Start = segment.Start,
+                    End = segment.End,
+                    Text = segment.Text
+                });
+
+                progress?.Report(0.1 + (segment.End.TotalSeconds / 300.0 * 0.8));
+            }
+
+            result.FullText = fullTextBuilder.ToString().Trim();
+            return result;
+        }
+        finally
+        {
+            // Apaga arquivo temporário WAV se foi criado
+            if (convertedWavPath != null && convertedWavPath != audioOrVideoPath && File.Exists(convertedWavPath))
+            {
+                try { File.Delete(convertedWavPath); } catch { }
+            }
+        }
     }
 }

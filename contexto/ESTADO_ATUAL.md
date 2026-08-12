@@ -18,13 +18,13 @@ O repositório principal agora abriga a solução `CortexFlow.sln` (.NET 9):
 |---|---|
 | Runtime Alvo | .NET 9 SDK (9.0.305) + Windows 10/11 WinUI 3 / WPF Fluent |
 | Solução C# | `CortexFlow.sln` com `CortexFlow.Core`, `CortexFlow.Infrastructure`, `CortexFlow.UI` e `CortexFlow.Core.Tests` |
-| Configurações & Diagnóstico | `SettingsWindow.xaml` com seletor de GPU/CPU, botão de limpar cache e gerador de diagnóstico do ambiente |
-| Visualizador de Resultados | `ResultWindow.xaml` com abas de transcrição, linha do tempo (timestamps) e botões "Copiar" e "Abrir Pasta" |
-| Formatos de Exportação | **Markdown (.md), Texto (.txt), JSON (.json) e PDF (.pdf)** com seletor de pasta de saída |
-| Interface Gráfica | `CortexFlow.UI` (MainWindow + ResultWindow + SettingsWindow) nativa com Drag-and-Drop e seletores |
+| Pré-processador de Mídia | **`AudioPreProcessor` (FFmpeg)** converte automaticamente qualquer vídeo/áudio (`.mp4`, `.mp3`, `.mkv`) para WAV 16kHz mono, eliminando o erro *Invalid wave file RIFF header* |
+| Interface Gráfica | `MainWindow.xaml` redesenhada no **estilo Conversor de Mídia Profissional**, com toolbar compacta, importação por pasta, botões de ação `❌` e `👁️` por linha e alto contraste |
+| Opções de Exportação | Salvar na pasta de origem ou pasta customizada nos formatos **.md, .txt, .json e .pdf** |
 | Executável Compilado | `CortexFlow.UI.exe` gerado e testado via `run_app.bat` |
-| Testes C# | **13 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 142ms) |
+| Testes C# | **15 testes `xUnit` aprovados** em `CortexFlow.Core.Tests` (100% OK em 79ms) |
 | Base Legada | Python 3.12 mantido em `legacy_python/` com 63 testes `unittest` verdes |
+
 
 
 
