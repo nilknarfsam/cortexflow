@@ -12,10 +12,11 @@ Entradas mais recentes ficam no topo. Registre apenas trabalhos materiais.
 - Implementado o `DocumentExtractorService` para leitura nativa de PDF, DOCX e TXT sem dependências externas.
 - Implementado o `WindowsOcrService` preparado para OCR Nativo do Windows 10/11.
 - Implementado o `MainViewModel` (MVVM) reativo integrado à fila assíncrona.
-- Implementada a janela visualizadora de resultados **`ResultWindow.xaml`** com suporte a abas de texto completo e linha do tempo de timestamps.
-- Adicionados botões para **"📋 Copiar para Área de Transferência"** e **"📁 Abrir Pasta no Explorer"**.
-- Integrado o botão **"👁️ Ver Resultado"** na `MainWindow.xaml`.
+- Implementado o modal de configurações avançadas e diagnósticos **`SettingsWindow.xaml`** com opção de alternar entre aceleração GPU/CPU, botão de limpar cache de transcrição e relatório em tempo real do ambiente técnico.
+- Integrado o botão **"⚙️ Avançado & Diagnóstico"** no cabeçalho da `MainWindow.xaml`.
+- Realizada varredura de estabilidade e verificações de segurança contra nulos em toda a solução .NET 9.
 - 13 testes xUnit aprovados e solução .NET 9 compilando 100% verde.
+
 
 
 

@@ -14,16 +14,17 @@ namespace CortexFlow.UI;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
+    private readonly CacheService _cacheService;
     private string? _customExportFolder;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        var cacheService = new CacheService();
+        _cacheService = new CacheService();
         var exportService = new ExportService();
         var transcriptionService = new WhisperTranscriptionService();
-        var queueManager = new QueueManager(transcriptionService, cacheService, exportService);
+        var queueManager = new QueueManager(transcriptionService, _cacheService, exportService);
 
         _viewModel = new MainViewModel(queueManager);
         DataContext = _viewModel;
@@ -57,6 +58,15 @@ public partial class MainWindow : Window
             _customExportFolder = dialog.FolderName;
             ExportPathText.Text = _customExportFolder;
         }
+    }
+
+    private void OpenSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var settingsWin = new SettingsWindow(_cacheService, _viewModel.Settings)
+        {
+            Owner = this
+        };
+        settingsWin.ShowDialog();
     }
 
     private void ViewResult_Click(object sender, RoutedEventArgs e)

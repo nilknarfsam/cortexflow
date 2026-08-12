@@ -29,10 +29,11 @@
                     <TextBlock Text="v4.0 (.NET 9 / WinUI 3 Engine)" FontSize="12" Foreground="#94A3B8" Margin="15,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Border Background="#059669" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#059669" CornerRadius="12" Padding="10,4" Margin="0,0,10,0" VerticalAlignment="Center">
                         <TextBlock Text="🔒 100% Processamento Local" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
                     </Border>
+                    <Button Content="⚙️ Avançado &amp; Diagnóstico" Click="OpenSettings_Click" Background="#334155" Foreground="White" Padding="10,5" BorderThickness="0"/>
                 </StackPanel>
             </Grid>
         </Border>
